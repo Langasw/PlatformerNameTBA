@@ -1,15 +1,13 @@
 //Main Project
-//part 1
-//
-//be strict
-"use strict";
+"use strict"; //use strict
 
 var game = new Phaser.Game(1000, 1320, Phaser.AUTO);
 
 //declare variables
 var player;
-var walls;
-var touchWalls;
+var platform; //group for platformable objects (bridges, clouds, background)
+var touchPlatform; //group for objects that have collission with objects (player)
+var arena;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
 var cutsceneLength = 50; //minimum time a cutscene can last
@@ -26,7 +24,8 @@ MainMenu.prototype = {
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		game.load.image('testArena', 'assets/img/testArena.png');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
-
+		game.load.image('collideTest', 'assets/img/testSprite.png');
+		game.load.physics('stageHitbox', 'js/json/betaStage.json', null);
 	},
 	create: function() {
 		console.log('MainMenu: create');
@@ -46,7 +45,6 @@ MainMenu.prototype = {
 		}
 	}
 }
-
 //Cutscene state
 var Cutscene = function(game){};
 Cutscene.prototype = {
@@ -60,7 +58,6 @@ Cutscene.prototype = {
 	create: function(){
 		console.log('Cutscene: create');
 		cutsceneTime = 0;
-		//check to see if format is right if it fails
 		CutsceneText = game.add.text(16, 16, 
 			'Placeholder Cutscene Text \n',
 			{fontSize: '32px', fill: '#000' });
@@ -79,9 +76,7 @@ Cutscene.prototype = {
 			game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
 		}
 	}
-
 }
-
 //Play state
 var Play = function(game){};
 Play.prototype = {
@@ -96,40 +91,56 @@ Play.prototype = {
 	create: function(){
 		console.log('Play: create');
 		//enable physics
-		game.physics.startSystem(Phaser.Physics.ARCADE);
+		//obsts.debug = true;
+		game.physics.startSystem(Phaser.Physics.P2JS);
+
 		//put in blue background
 		game.stage.backgroundColor = "#89CFF0";
 		//set up arena
-		walls = game.add.group();
-		game.physics.arcade.enable(walls, Phaser.Physics.ARCADE); //enable physics for walls
-		touchWalls = game.add.group(); //items that have collision w walls
-		walls.enableBody = true;
-		var arena = walls.create(0,0, 'testArena');
-		player = new Player(game, 30, 370, 'tempSpriteheet', 'still');
+		platform = game.add.group(); //items that are walls
+		platform.enableBody = true; 
+		game.physics.p2.enable(platform); //enable physics for walls
+		arena = new Arena(game, (game.width)/2, (game.height)/2, 'testArena');
+		game.add.existing(arena);
+		platform.add(arena);
+		//arena.enableBody = true;
+		//game.physics.arcade.enable(arena, Phaser.Physics.ARCADE); //enable physics for walls
+	
+		touchPlatform = game.add.group(); //items that have collision w walls
+		touchPlatform.enableBody = true;
+
+		player = new Player(game, 100, 390, 'tempSpriteheet', 'still');
 		game.add.existing(player);
-		touchWalls.add(player);
+		//player.enableBody = true; 
+		touchPlatform.add(player);
+		this.collideSprite = touchPlatform.create(0,0, 'collideTest');
+		this.collideSprite.body.gravity.y = 24;
+		//player.body.collideWorldBounds = true;
 		arena.body.immovable = true;
 
 	},
 	update: function(){
 		//hit detection for player to platform
-		var hitWall = game.physics.arcade.collide(player, walls);
+		var hitWall = game.physics.arcade.collide(player, arena);
+		//var hitWall = game.physics.arcade.overlap(arena, player);
 
-		//player dies if they fall into a pit
-		if(player.y < 1420){ //if they exceed y value too much (i.e fall out of world bounds)
+		//player dies if they fall into a pit (CURRENTLY NOT WORKING)
+		if(player.y > 1420){ //if they exceed y value too much (i.e fall out of world bounds)
 			//game.state.start('Play', true, false, this.level); //move to Play if player dies
-			killPlayer;
-		}
-
-		//kill player command
-		function killPlayer(){
 			player.destroy();
-			game.state.start('Cutscene', true, false, this.level); //move to Play if player dies
+			game.state.start('Play', true, false, this.level); //move to Play if player dies
 		}
+		//kill player command (CURRENTLY NOT WOKRING)
+		function killPlayer(){
+		}
+	},
+	render: function(){
+		//game.debug.body(platform);
+		//game.debug.body(touchPlatform);
+		game.debug.body(arena);
+		game.debug.body(player);
 	}
 }
-
-
 var GameOver = function(game) {};
 GameOver.prototype = {
 	preload: function(){
