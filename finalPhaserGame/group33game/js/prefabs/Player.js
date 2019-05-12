@@ -9,12 +9,16 @@ function Player(game, xPass, yPass, key, frame){
 	game.physics.p2.enable(this); //enable physics
 	//this.enableBody = true; //enable body
 	this.body.setRectangle(50, 84);
-	game.physics.p2.gravity.y = 200; //enable gravity (CHANGE GRAVITY HERE)
+	game.physics.p2.gravity.y = 400; //enable gravity (CHANGE GRAVITY HERE)
+	//this.body.collideWorldBounds = false; // can collide with world bounds
 	this.body.collideWorldBounds = true; // can collide with world bounds
 	this.body.kinematic = false;
 	//animations
 	this.animations.add('moving', [1], 10, true); //moving sprite is second on tempSpritesheet
 	this.animations.add('still', [2], 10, true); //moving sprite is third on tempSpritesheet
+
+	this.body.setZeroDamping();
+	this.body.fixedRotation = true;
 	//declare keys
 	var leftkey;
 	game.input.keyboard.removeKeyCapture(Phaser.Keyboard.left);

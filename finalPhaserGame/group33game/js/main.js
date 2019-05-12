@@ -5,9 +5,10 @@ var game = new Phaser.Game(1000, 1320, Phaser.AUTO);
 
 //declare variables
 var player;
-var platform; //group for platformable objects (bridges, clouds, background)
-var touchPlatform; //group for objects that have collission with objects (player)
+//var platform; //group for platformable objects (bridges, clouds, background)
+//var touchPlatform; //group for objects that have collission with objects (player)
 var arena;
+var endArrow;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
 var cutsceneLength = 50; //minimum time a cutscene can last
@@ -25,6 +26,8 @@ MainMenu.prototype = {
 		game.load.image('testArena', 'assets/img/testArena.png');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
 		game.load.image('collideTest', 'assets/img/testSprite.png');
+		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
+		game.load.image('betaArrow', 'assets/img/betaArrow.png');
 		game.load.physics('stageHitbox', 'js/json/betaStage.json', null);
 	},
 	create: function() {
@@ -97,42 +100,71 @@ Play.prototype = {
 		//put in blue background
 		game.stage.backgroundColor = "#89CFF0";
 		//set up arena
-		platform = game.add.group(); //items that are walls
-		platform.enableBody = true; 
+		var platform = game.physics.p2.createCollisionGroup();
+		var touchPlatform = game.physics.p2.createCollisionGroup();
+
+		//game.physics.p2.updateBoundsCollisionGroup(); //toggle this on and off
+
+		//platform.enableBody = true; 
 		game.physics.p2.enable(platform); //enable physics for walls
 		arena = new Arena(game, (game.width)/2, (game.height)/2, 'testArena');
 		game.add.existing(arena);
-		platform.add(arena);
+		arena.enableBody = true;
+		arena.physicsBodyType = Phaser.Physics.P2JS;
+		arena.body.setCollisionGroup(platform);
+		arena.body.collides([touchPlatform]);
+		arena.body.immovable = true;
 		//arena.enableBody = true;
 		//game.physics.arcade.enable(arena, Phaser.Physics.ARCADE); //enable physics for walls
 	
-		touchPlatform = game.add.group(); //items that have collision w walls
-		touchPlatform.enableBody = true;
+		//touchPlatform = game.add.group(); //items that have collision w walls
+		//touchPlatform.enableBody = true;
 
 		player = new Player(game, 100, 390, 'tempSpriteheet', 'still');
 		game.add.existing(player);
-		//player.enableBody = true; 
-		touchPlatform.add(player);
-		this.collideSprite = touchPlatform.create(0,0, 'collideTest');
-		this.collideSprite.body.gravity.y = 24;
+		player.enableBody = true; 
+		player.body.setCollisionGroup(touchPlatform);
+		player.body.collides([platform]);
 		//player.body.collideWorldBounds = true;
-		arena.body.immovable = true;
+		this.waterfallPlatform = new WheelPlatform(game, 860, 1200, 'wheelPlatform', 200, 1200);
+		game.add.existing(this.waterfallPlatform);
+		this.waterfallPlatform.enableBody = true;
+		this.waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
+		//this.waterfallPlatform.body.setCollisionGroup(platform); this line causes error
+		this.waterfallPlatform.body.collides([touchPlatform]);
+
+		endArrow = new EndArrow(game, 960, 230, 'betaArrow');
+		game.add.existing(endArrow);
+		endArrow.enableBody = true;
+		endArrow.physicsBodyType = Phaser.Physics.P2JS;
+		endArrow.body.setCollisionGroup(platform);
+		//end level if player runs into arrow
+		endArrow.body.collides(player, toNextLevel, this);
+		function toNextLevel(endArrow, game){
+			endArrow.destroy();
+			//increment level
+			this.level = this.level+1;
+			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
+		}
 
 	},
 	update: function(){
 		//hit detection for player to platform
-		var hitWall = game.physics.arcade.collide(player, arena);
+		//var hitWall = game.physics.arcade.collide(player, arena);
 		//var hitWall = game.physics.arcade.overlap(arena, player);
+		//var worldContact = game.physics.p2.createContactMaterial(player, arena);
+
+		//end level if player runs into arrow
+		//player.body.collides(endArrow, toNextLevel, this);
 
 		//player dies if they fall into a pit (CURRENTLY NOT WORKING)
-		if(player.y > 1420){ //if they exceed y value too much (i.e fall out of world bounds)
+		if(player.y > 1450){ //if they exceed y value too much (i.e fall out of world bounds)
 			//game.state.start('Play', true, false, this.level); //move to Play if player dies
 			player.destroy();
 			game.state.start('Play', true, false, this.level); //move to Play if player dies
 		}
 		//kill player command (CURRENTLY NOT WOKRING)
-		function killPlayer(){
-		}
+		
 	},
 	render: function(){
 		//game.debug.body(platform);
