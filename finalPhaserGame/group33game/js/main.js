@@ -9,9 +9,15 @@ var player;
 //var touchPlatform; //group for objects that have collission with objects (player)
 var arena;
 var endArrow;
+var waterfallPlatform;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
 var cutsceneLength = 50; //minimum time a cutscene can last
+var upward = 0; //movement of the waterfall platform
+var lowY; //lowest y point of the waterfall platform in the stage
+var highY; //highest y point of the waterfall platform in the stage
+var jumpOnce;
+var testTimer = 0;
 
 //Main Menu state
 var MainMenu = function(game) {};
@@ -28,6 +34,8 @@ MainMenu.prototype = {
 		game.load.image('collideTest', 'assets/img/testSprite.png');
 		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
 		game.load.image('betaArrow', 'assets/img/betaArrow.png');
+		game.load.image('controlWindow', 'assets/img/controlWindow.png');
+		game.load.image('secretWalls', 'assets/img/secretWalls.png');
 		game.load.physics('stageHitbox', 'js/json/betaStage.json', null);
 	},
 	create: function() {
@@ -97,16 +105,35 @@ Play.prototype = {
 		//obsts.debug = true;
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
+		/*var worldBounds = new Phaser.Rectangle(0,0,1000,1500);
+		customBounds = {left: null, right: null, top: null, bottom: null};
+		createPreviewBounds(bounds.x, bounds.y, bounds.width, bounds.height);
+		*/
+
 		//put in blue background
 		game.stage.backgroundColor = "#89CFF0";
+
+
+
 		//set up arena
 		var platform = game.physics.p2.createCollisionGroup();
 		var touchPlatform = game.physics.p2.createCollisionGroup();
+		game.physics.p2.enable(platform); //enable physics for walls
 
 		//game.physics.p2.updateBoundsCollisionGroup(); //toggle this on and off
 
+		//put in secret walls
+		/*var leftWall = game.add.sprite(40, game.height/2, 'secretWalls');
+		game.physics.p2.enable(leftWall); //enable physics
+		leftWall.body.clearShapes();
+		leftWall.physicsBodyType = Phaser.Physics.P2JS;
+		leftWall.body.setRectangle(3, 150);
+		leftWall.body.setCollisionGroup(platform);
+		leftWall.body.collides([touchPlatform]);
+		leftWall.body.immovable = true;*/
+
 		//platform.enableBody = true; 
-		game.physics.p2.enable(platform); //enable physics for walls
+		
 		arena = new Arena(game, (game.width)/2, (game.height)/2, 'testArena');
 		game.add.existing(arena);
 		arena.enableBody = true;
@@ -120,27 +147,44 @@ Play.prototype = {
 		//touchPlatform = game.add.group(); //items that have collision w walls
 		//touchPlatform.enableBody = true;
 
+		//control window
+		var controlWindow = game.add.sprite(game.width/2, 300, 'controlWindow');
+		controlWindow.anchor.set(0.5);
+		controlWindow.alpha = 0.2;
+
 		player = new Player(game, 100, 390, 'tempSpriteheet', 'still');
 		game.add.existing(player);
 		player.enableBody = true; 
 		player.body.setCollisionGroup(touchPlatform);
-		player.body.collides([platform]);
-		//player.body.collideWorldBounds = true;
-		this.waterfallPlatform = new WheelPlatform(game, 860, 1200, 'wheelPlatform', 200, 1200);
-		game.add.existing(this.waterfallPlatform);
-		this.waterfallPlatform.enableBody = true;
-		this.waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
-		//this.waterfallPlatform.body.setCollisionGroup(platform); this line causes error
-		this.waterfallPlatform.body.collides([touchPlatform]);
+		player.body.collides([platform], refreshJump, this);
 
-		endArrow = new EndArrow(game, 960, 230, 'betaArrow');
+		function refreshJump(jumpOnce){
+			jumpOnce = 0;
+		}
+		//player.body.collideWorldBounds = true;
+
+		lowY = 200;
+		highY = 1200;
+		waterfallPlatform = new WheelPlatform(game, 850, 1000, 'wheelPlatform');
+		game.add.existing(waterfallPlatform);
+		waterfallPlatform.enableBody = true;
+		waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
+		waterfallPlatform.body.setCollisionGroup(platform); 
+		waterfallPlatform.body.collides([touchPlatform]);
+		upward = 0;
+
+		testTimer = 0;
+		jumpOnce = 0;
+
+		endArrow = new EndArrow(game, 930, 230, 'betaArrow');
 		game.add.existing(endArrow);
 		endArrow.enableBody = true;
 		endArrow.physicsBodyType = Phaser.Physics.P2JS;
-		endArrow.body.setCollisionGroup(platform);
+		endArrow.body.setCollisionGroup(platform); //this line causes error
 		//end level if player runs into arrow
-		endArrow.body.collides(player, toNextLevel, this);
-		function toNextLevel(endArrow, game){
+		endArrow.body.collides([touchPlatform], toNextLevel, this);
+
+		function toNextLevel(endArrow, player,game){
 			endArrow.destroy();
 			//increment level
 			this.level = this.level+1;
@@ -157,6 +201,9 @@ Play.prototype = {
 		//end level if player runs into arrow
 		//player.body.collides(endArrow, toNextLevel, this);
 
+		//create keyboard
+		this.cursors = game.input.keyboard.createCursorKeys();
+
 		//player dies if they fall into a pit (CURRENTLY NOT WORKING)
 		if(player.y > 1450){ //if they exceed y value too much (i.e fall out of world bounds)
 			//game.state.start('Play', true, false, this.level); //move to Play if player dies
@@ -164,7 +211,49 @@ Play.prototype = {
 			game.state.start('Play', true, false, this.level); //move to Play if player dies
 		}
 		//kill player command (CURRENTLY NOT WOKRING)
-		
+
+		//waterfall platform movement
+		var platformSpeed = 118; //speed at which platform changes x
+
+		//swap directions
+		/*if(waterfallPlatform.y >= 600){ //upper limit
+			upward = 1; //go down
+		}else if(waterfallPlatform.y <= 900){ //lower limit
+			upward = 0; //go up
+		}else{
+		}*/
+
+		/*if(player.body.x >= 400){ //upper limit
+			upward = 1; //go down
+		}else if(player.body.x <= 900){ //lower limit
+			upward = 0; //go up
+		}*/
+
+		testTimer++;
+		if(testTimer == 300){
+			upward = 1;
+		}else if(testTimer == 600){
+			upward = 0;
+			testTimer = 0;
+		}
+
+		//general movement of platform
+		if(upward == 0){
+			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
+		}else if(upward == 1){
+			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
+		}
+
+		//jumping movement
+		if(this.cursors.up.isDown){
+			if(jumpOnce == 0){
+				player.body.velocity.y = -250; //jump
+			}
+			jumpOnce = 1
+		}else{
+			//jumpOnce = 0;
+		}
+			
 	},
 	render: function(){
 		//game.debug.body(platform);

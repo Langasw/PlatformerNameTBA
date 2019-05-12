@@ -60,7 +60,13 @@ Player.prototype.update = function() {
 		//stay still
 		this.animations.play('still');
 	}
+	
 	//jumping movement
+	/*if(this.cursors.up.isDown){
+		this.body.velocity.y = -250; //jump
+	}*/
+
+
 	this.jumpKey.onDown.add(jump, this); //if up is pressed
 	function jump(){
 		this.body.velocity.y = -250; //jump

@@ -1,4 +1,4 @@
-function WheelPlatform(game, xPass, yPass, key, lowY, highY/*, frame*/){
+function WheelPlatform(game, xPass, yPass, key, /*lowY, highY, frame*/){
 	//call to Phaser.Sprite
 	//create new sprite 
 	Phaser.Sprite.call(this, game, xPass, yPass, key/*, frame*/); 
@@ -26,21 +26,6 @@ WheelPlatform.prototype = Object.create(Phaser.Sprite.prototype);
 WheelPlatform.prototype.constructor = WheelPlatform;
 WheelPlatform.prototype.update = function() {
 	//ex: 300
-	var platformSpeed = 90; //speed at which platform changes x
-
-	//swap directions
-	if(this.body.y < (this.lowY)){
-		this.upward = 1;
-	}
-	if(this.body.y > (this.highY)){
-		this.upward = 0;
-	}
-
-	if(this.upward == 0){
-		this.body.velocity.y = -1 * platformSpeed;
-	}
-	if(this.upward == 1){
-		this.body.velocity.y = platformSpeed;
-	}
+	
 	
 }
