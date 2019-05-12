@@ -16,6 +16,7 @@ var cutsceneLength = 50; //minimum time a cutscene can last
 var upward = 0; //movement of the waterfall platform
 var lowY; //lowest y point of the waterfall platform in the stage
 var highY; //highest y point of the waterfall platform in the stage
+var direction = 1; //1 for left, 0 for right
 var jumpOnce;
 var testTimer = 0;
 
@@ -37,6 +38,7 @@ MainMenu.prototype = {
 		game.load.image('controlWindow', 'assets/img/controlWindow.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
 		game.load.physics('stageHitbox', 'js/json/betaStage.json', null);
+		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
 	},
 	create: function() {
 		console.log('MainMenu: create');
@@ -133,6 +135,7 @@ Play.prototype = {
 		leftWall.body.immovable = true;*/
 
 		//platform.enableBody = true; 
+
 		
 		arena = new Arena(game, (game.width)/2, (game.height)/2, 'testArena');
 		game.add.existing(arena);
@@ -152,15 +155,23 @@ Play.prototype = {
 		controlWindow.anchor.set(0.5);
 		controlWindow.alpha = 0.2;
 
-		player = new Player(game, 100, 390, 'tempSpriteheet', 'still');
+		player = new Player(game, 100, 390, 'characterSpritesheet', 'Walk1');
 		game.add.existing(player);
 		player.enableBody = true; 
 		player.body.setCollisionGroup(touchPlatform);
 		player.body.collides([platform], refreshJump, this);
 
-		function refreshJump(jumpOnce){
+		function refreshJump(player, jumpOnce){
 			jumpOnce = 0;
 		}
+
+		//add player animations
+		player.animations.add('moving', [6, 7, 8, 5], 10, true); 
+		player.animations.add('still', [5], 10, true); 
+		player.animations.add('jumping', [1, 2, 3], 10, true); //
+		player.animations.add('falling', [0], 10, true); //moving sprite is third on tempSpritesheet
+		player.animations.add('landing', [4], 10, true) //
+
 		//player.body.collideWorldBounds = true;
 
 		lowY = 200;
@@ -175,6 +186,7 @@ Play.prototype = {
 
 		testTimer = 0;
 		jumpOnce = 0;
+		direction = 0;
 
 		endArrow = new EndArrow(game, 930, 230, 'betaArrow');
 		game.add.existing(endArrow);
@@ -193,6 +205,7 @@ Play.prototype = {
 
 	},
 	update: function(){
+		var playerVelocity = 200; //CHANGE PLAYER VELOCITY HERE
 		//hit detection for player to platform
 		//var hitWall = game.physics.arcade.collide(player, arena);
 		//var hitWall = game.physics.arcade.overlap(arena, player);
@@ -204,10 +217,13 @@ Play.prototype = {
 		//create keyboard
 		this.cursors = game.input.keyboard.createCursorKeys();
 
+		//reset player velocity
+		player.body.velocity.x = 0; //start by reseting velocity to zero
+
 		//player dies if they fall into a pit (CURRENTLY NOT WORKING)
 		if(player.y > 1450){ //if they exceed y value too much (i.e fall out of world bounds)
 			//game.state.start('Play', true, false, this.level); //move to Play if player dies
-			player.destroy();
+			//player.destroy();
 			game.state.start('Play', true, false, this.level); //move to Play if player dies
 		}
 		//kill player command (CURRENTLY NOT WOKRING)
@@ -242,6 +258,30 @@ Play.prototype = {
 			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
 		}else if(upward == 1){
 			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
+		}
+
+		//horizontal movement for player
+		if (this.cursors.left.isDown){ 	//if left key is pressed
+			//move left
+			player.body.velocity.x = -1 * playerVelocity; //move at negative playerVelocity speed
+			player.animations.play('moving');
+			//flip sprite
+			if(direction == 0){ //if facing right
+				player.scale.x *= -1; //reverse sritework
+				direction = 1; //sprite direction is left
+			}
+		}else if(this.cursors.right.isDown){ //if right key is pressed
+			//more right
+			player.body.velocity.x = playerVelocity; //move at playerVelocity speed
+			player.animations.play('moving');
+			//flip sprite
+			if(direction == 1){ //if facing left
+				player.scale.x *= -1; //reverse sritework
+				direction = 0; //sprite direction is right
+			}
+		}else{
+			//stay still
+			player.animations.play('still');
 		}
 
 		//jumping movement
