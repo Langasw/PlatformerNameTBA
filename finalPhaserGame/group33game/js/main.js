@@ -17,6 +17,7 @@ var upward = 0; //movement of the waterfall platform
 var lowY; //lowest y point of the waterfall platform in the stage
 var highY; //highest y point of the waterfall platform in the stage
 var direction = 1; //1 for left, 0 for right
+var jumpAnimOnce = 0;
 var jumpOnce;
 var testTimer = 0;
 
@@ -125,14 +126,23 @@ Play.prototype = {
 		//game.physics.p2.updateBoundsCollisionGroup(); //toggle this on and off
 
 		//put in secret walls
-		/*var leftWall = game.add.sprite(40, game.height/2, 'secretWalls');
+		var leftWall = game.add.sprite(-20, game.height/2, 'secretWalls');
 		game.physics.p2.enable(leftWall); //enable physics
 		leftWall.body.clearShapes();
 		leftWall.physicsBodyType = Phaser.Physics.P2JS;
-		leftWall.body.setRectangle(3, 150);
+		leftWall.body.setRectangle(50, 1500);
 		leftWall.body.setCollisionGroup(platform);
 		leftWall.body.collides([touchPlatform]);
-		leftWall.body.immovable = true;*/
+		leftWall.body.kinematic = true;
+
+		var rightWall = game.add.sprite(game.width+20, game.height/2, 'secretWalls');
+		game.physics.p2.enable(rightWall); //enable physics
+		rightWall.body.clearShapes();
+		rightWall.physicsBodyType = Phaser.Physics.P2JS;
+		rightWall.body.setRectangle(50, 1500);
+		rightWall.body.setCollisionGroup(platform);
+		rightWall.body.collides([touchPlatform]);
+		rightWall.body.kinematic = true;
 
 		//platform.enableBody = true; 
 
@@ -162,14 +172,15 @@ Play.prototype = {
 		player.body.collides([platform], refreshJump, this);
 
 		function refreshJump(player, jumpOnce){
+			//this is where landing animation should go, for only a few frames
 			jumpOnce = 0;
 		}
 
 		//add player animations
 		player.animations.add('moving', [6, 7, 8, 5], 10, true); 
 		player.animations.add('still', [5], 10, true); 
-		player.animations.add('jumping', [1, 2, 3], 10, true); //
-		player.animations.add('falling', [0], 10, true); //moving sprite is third on tempSpritesheet
+		player.animations.add('jumping', [1, 1, 2, 3, 3, 3, 3, 3, 0], 12, false); //
+		//player.animations.add('falling', [0], 10, true); //moving sprite is third on tempSpritesheet
 		player.animations.add('landing', [4], 10, true) //
 
 		//player.body.collideWorldBounds = true;
@@ -186,9 +197,10 @@ Play.prototype = {
 
 		testTimer = 0;
 		jumpOnce = 0;
+		jumpAnimOnce = 0;
 		direction = 0;
 
-		endArrow = new EndArrow(game, 930, 230, 'betaArrow');
+		endArrow = new EndArrow(game, 960, 230, 'betaArrow');
 		game.add.existing(endArrow);
 		endArrow.enableBody = true;
 		endArrow.physicsBodyType = Phaser.Physics.P2JS;
@@ -260,11 +272,22 @@ Play.prototype = {
 			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
 		}
 
+		//jumping movement
+		if(this.cursors.up.isDown){
+			if(jumpOnce == 0){
+				player.body.velocity.y = -250; //jump
+				player.animations.play('jumping');
+			}
+			jumpOnce = 1
+		}else{
+			//jumpOnce = 0;
+		}
+
 		//horizontal movement for player
 		if (this.cursors.left.isDown){ 	//if left key is pressed
 			//move left
 			player.body.velocity.x = -1 * playerVelocity; //move at negative playerVelocity speed
-			player.animations.play('moving');
+			
 			//flip sprite
 			if(direction == 0){ //if facing right
 				player.scale.x *= -1; //reverse sritework
@@ -273,7 +296,7 @@ Play.prototype = {
 		}else if(this.cursors.right.isDown){ //if right key is pressed
 			//more right
 			player.body.velocity.x = playerVelocity; //move at playerVelocity speed
-			player.animations.play('moving');
+			//player.animations.play('moving');
 			//flip sprite
 			if(direction == 1){ //if facing left
 				player.scale.x *= -1; //reverse sritework
@@ -281,25 +304,37 @@ Play.prototype = {
 			}
 		}else{
 			//stay still
-			player.animations.play('still');
+			//player.animations.play('still');
 		}
 
-		//jumping movement
-		if(this.cursors.up.isDown){
-			if(jumpOnce == 0){
-				player.body.velocity.y = -250; //jump
+		//animation control
+		if(this.cursors.up.isDown){ //upward movement
+			if(jumpAnimOnce = 0){
+				player.animations.play('jumping');
 			}
-			jumpOnce = 1
+			jumpAnimOnce = 1;
 		}else{
-			//jumpOnce = 0;
+			//horizontal movement
+			if(this.cursors.left.isDown || this.cursors.right.isDown){
+				player.animations.play('moving');
+			}else{
+				player.animations.play('still');
+			}
+			jumpAnimOnce = 0;
 		}
+
+		//debug, reset jump animation
+		if(this.cursors.down.isDown){
+			jumpOnce = 1;
+		}
+
+		
 			
 	},
 	render: function(){
 		//game.debug.body(platform);
 		//game.debug.body(touchPlatform);
-		game.debug.body(arena);
-		game.debug.body(player);
+		//game.debug.spriteInfo(player, 32, 32);
 	}
 }
 var GameOver = function(game) {};

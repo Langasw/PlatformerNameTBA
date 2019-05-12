@@ -8,7 +8,7 @@ function Player(game, xPass, yPass, key, frame){
 	this.anchor.set(0.5); //anchor at center
 	game.physics.p2.enable(this); //enable physics
 	//this.enableBody = true; //enable body
-	this.body.setRectangle(53, 133);
+	this.body.setRectangle(40, 133);
 	game.physics.p2.gravity.y = 400; //enable gravity (CHANGE GRAVITY HERE)
 	//this.body.collideWorldBounds = false; // can collide with world bounds
 	this.body.collideWorldBounds = true; // can collide with world bounds

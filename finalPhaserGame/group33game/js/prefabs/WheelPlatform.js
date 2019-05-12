@@ -7,7 +7,7 @@ function WheelPlatform(game, xPass, yPass, key, /*lowY, highY, frame*/){
 	game.physics.p2.enable(this); //enable physics
 	this.body.clearShapes();
 	//load body
-	this.body.setRectangle(150, 15);
+	this.body.setRectangle(100, 15);
 	//this.body.loadPolygon('stageHitbox', 'lowerCliff');
 
 	//this.enableBody = true; //enable body
