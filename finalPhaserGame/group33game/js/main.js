@@ -169,21 +169,25 @@ Play.prototype = {
 		game.add.existing(player);
 		player.enableBody = true; 
 		player.body.setCollisionGroup(touchPlatform);
-		player.body.collides([platform], refreshJump, this);
+		player.body.collides([platform]/*, refreshJump, this*/);
+		player.body.onBeginContact.add(refreshJump, this);
 
-		function refreshJump(player, jumpOnce){
-			//this is where landing animation should go, for only a few frames
-			jumpOnce = 0;
-		}
 
 		//add player animations
 		player.animations.add('moving', [6, 7, 8, 5], 10, true); 
 		player.animations.add('still', [5], 10, true); 
 		player.animations.add('jumping', [1, 1, 2, 3, 3, 3, 3, 3, 0], 12, false); //
 		//player.animations.add('falling', [0], 10, true); //moving sprite is third on tempSpritesheet
-		player.animations.add('landing', [4], 10, true) //
+		player.animations.add('landing', [4, 4, 4], 10, true) //
 
 		//player.body.collideWorldBounds = true;
+		function refreshJump(body, bodyB, shapeA, shapeB, equation){
+			//if player collides with platform, do this
+			//this is where landing animation should go, for only a few frames
+			jumpOnce = 0;
+			//player.animations.play('landing');
+		}
+
 
 		lowY = 200;
 		highY = 1200;
@@ -313,7 +317,7 @@ Play.prototype = {
 				player.animations.play('jumping');
 			}
 			jumpAnimOnce = 1;
-		}else{
+		}else {
 			//horizontal movement
 			if(this.cursors.left.isDown || this.cursors.right.isDown){
 				player.animations.play('moving');
@@ -328,6 +332,12 @@ Play.prototype = {
 			jumpOnce = 1;
 		}
 
+		//refresh jump function check
+		/*if(jumpOnce == 0){
+			game.stage.backgroundColor = "#FFFFCC";
+		}else if(jumpOnce == 1){
+			game.stage.backgroundColor = "#666600";
+		}*/
 		
 			
 	},
