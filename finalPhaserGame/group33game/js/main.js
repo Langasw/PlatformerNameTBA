@@ -7,6 +7,7 @@ var game = new Phaser.Game(1000, 1320, Phaser.AUTO);
 var player;
 //var platform; //group for platformable objects (bridges, clouds, background)
 //var touchPlatform; //group for objects that have collission with objects (player)
+var currentLevel = 1;
 var arena;
 var endArrow;
 var waterfallPlatform;
@@ -20,7 +21,6 @@ var direction = 1; //1 for left, 0 for right
 var jumpAnimOnce = 0;
 var jumpOnce = 1;
 var testTimer = 0;
-
 var jumpNoise;
 var deathFallNoise;
 var windNoise;
@@ -28,9 +28,6 @@ var windNoise;
 //Main Menu state
 var MainMenu = function(game) {};
 MainMenu.prototype = {
-	init: function(){
-		this.level = 1;
-	},
 	preload: function(){
 		console.log('MainMenu: preload');
 		// preload assets
@@ -70,9 +67,9 @@ MainMenu.prototype = {
 //Cutscene state
 var Cutscene = function(game){};
 Cutscene.prototype = {
-	init: function(sc){
-		//get level from Play state
-		this.level = sc;
+	init: function(){
+		//get level from variable
+		this.level = currentLevel;
 	},
 	preload: function(){
 		console.log('Cutscene: preload');
@@ -102,9 +99,9 @@ Cutscene.prototype = {
 //Play state
 var Play = function(game){};
 Play.prototype = {
-	init: function(sc){
+	init: function(){
 		//get level from main menu
-		this.level = sc;
+		this.level = currentLevel;
 	},
 	preload: function(){
 		console.log('Play: preload');
@@ -337,7 +334,7 @@ Play.prototype = {
 		}
 
 		//animation control
-		if(this.cursors.up.isDown){ //upward movement
+		if(this.cursors.up.isPressed){ //upward movement
 			if(jumpAnimOnce = 0){
 				player.animations.play('jumping');
 			}
@@ -351,7 +348,6 @@ Play.prototype = {
 			}
 			jumpAnimOnce = 0;
 		}
-
 		//debug, reset jump animation
 		if(this.cursors.down.isDown){
 			jumpOnce = 1;
