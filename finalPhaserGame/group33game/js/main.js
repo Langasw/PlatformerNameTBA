@@ -18,8 +18,12 @@ var lowY; //lowest y point of the waterfall platform in the stage
 var highY; //highest y point of the waterfall platform in the stage
 var direction = 1; //1 for left, 0 for right
 var jumpAnimOnce = 0;
-var jumpOnce;
+var jumpOnce = 1;
 var testTimer = 0;
+
+var jumpNoise;
+var deathFallNoise;
+var windNoise;
 
 //Main Menu state
 var MainMenu = function(game) {};
@@ -38,8 +42,12 @@ MainMenu.prototype = {
 		game.load.image('betaArrow', 'assets/img/betaArrow.png');
 		game.load.image('controlWindow', 'assets/img/controlWindow.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
+		game.load.image('caveBackground', 'assets/img/betaCaveBG.png');
 		game.load.physics('stageHitbox', 'js/json/betaStage.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
+		game.load.audio('jumpSound', ['assets/audio/jump.wav']);
+		game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
+		game.load.audio('windNoise', ['assets/audio/windNoise.mp3']);
 	},
 	create: function() {
 		console.log('MainMenu: create');
@@ -114,9 +122,10 @@ Play.prototype = {
 		*/
 
 		//put in blue background
-		game.stage.backgroundColor = "#89CFF0";
+		game.stage.backgroundColor = "#1D5986";
 
-
+		//set up background
+		game.add.sprite(0,0, 'caveBackground');
 
 		//set up arena
 		var platform = game.physics.p2.createCollisionGroup();
@@ -161,7 +170,7 @@ Play.prototype = {
 		//touchPlatform.enableBody = true;
 
 		//control window
-		var controlWindow = game.add.sprite(game.width/2, 300, 'controlWindow');
+		var controlWindow = game.add.sprite(game.width/2, 240, 'controlWindow');
 		controlWindow.anchor.set(0.5);
 		controlWindow.alpha = 0.2;
 
@@ -200,9 +209,18 @@ Play.prototype = {
 		upward = 0;
 
 		testTimer = 0;
-		jumpOnce = 0;
+		jumpOnce = 1;
 		jumpAnimOnce = 0;
 		direction = 0;
+
+		jumpNoise = game.add.audio('jumpSound');
+		jumpNoise.volume = 0.5;
+		deathFallNoise = game.add.audio('deathFall');
+
+		windNoise = new Phaser.Sound(game, 'windNoise', 0.25, true);
+		//set up volume if music sound is too much or little
+		windNoise.volume = 0.25;
+		windNoise.play();
 
 		endArrow = new EndArrow(game, 960, 230, 'betaArrow');
 		game.add.existing(endArrow);
@@ -210,14 +228,19 @@ Play.prototype = {
 		endArrow.physicsBodyType = Phaser.Physics.P2JS;
 		endArrow.body.setCollisionGroup(platform); //this line causes error
 		//end level if player runs into arrow
-		endArrow.body.collides([touchPlatform], toNextLevel, this);
+		endArrow.body.collides([touchPlatform]/*, toNextLevel, this*/);
+		//endArrow.body.onBeginContact.add(toNextlevel, this);
 
-		function toNextLevel(endArrow, player,game){
+		function toNextLevel(body, bodyB, shapeA, shapeB, equation){
 			endArrow.destroy();
 			//increment level
 			this.level = this.level+1;
 			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 		}
+
+		//endArrow.body.onBeginContact.add(toNextlevel, this);
+
+		
 
 	},
 	update: function(){
@@ -241,6 +264,7 @@ Play.prototype = {
 			//game.state.start('Play', true, false, this.level); //move to Play if player dies
 			//player.destroy();
 			game.state.start('Play', true, false, this.level); //move to Play if player dies
+			deathFallNoise.play(); //play death sound
 		}
 		//kill player command (CURRENTLY NOT WOKRING)
 
@@ -281,6 +305,7 @@ Play.prototype = {
 			if(jumpOnce == 0){
 				player.body.velocity.y = -250; //jump
 				player.animations.play('jumping');
+				jumpNoise.play(); //play jump sound
 			}
 			jumpOnce = 1
 		}else{
