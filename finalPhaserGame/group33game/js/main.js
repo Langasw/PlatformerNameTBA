@@ -51,11 +51,13 @@ MainMenu.prototype = {
 		//generate start screen
 		var MainMenuText;
 		//check to see if format is right if it fails
-		MainMenuText = game.add.text(16, 16, 
+		MainMenuText = game.add.text(game.width/2, (game.height/2)-200, 
 			'Use Left, Right, and Up to Move \n' +
 			'Press Space to Begin!', 
 			{fontSize: '32px', fill: '#000' });
 		game.stage.backgroundColor = "#FACADE";
+		MainMenuText.anchor.set(0.5);
+		MainMenuText.align = 'center';
 	},
 	update: function(){
 		//main menu logic
@@ -82,19 +84,22 @@ Cutscene.prototype = {
 		windNoise.volume = 0.35;
 		windNoise.play();*/
 		windNoise = game.add.audio('windNoise');
-		windNoise.volume = 0.7;
+		windNoise.volume = 0.3;
 		windNoise.play();
 
 		cutsceneTime = 0;
-		CutsceneText = game.add.text(16, 16, 
-			'Placeholder Cutscene Text \n',
-			{fontSize: '32px', fill: '#000' });
+		CutsceneText = game.add.text(game.width/2, (game.height/2)-200, 
+			'Placeholder Cutscene Text\n',
+			{fontSize: '50px', fill: '#000' });
+		CutsceneText.anchor.set(0.5);
+		CutsceneText.align = 'center';
+
 		game.stage.backgroundColor = "#FACADE";
 	},
 	update: function(){
 		cutsceneTime++; //increment cutscene time
 		if(cutsceneTime > cutsceneLength){
-			CutsceneText.text = 
+			CutsceneText.text =
 			'Placeholder Cutscene Text\n' +
 			'Press Space to Continue';
 		}
@@ -136,6 +141,7 @@ Play.prototype = {
 		//set up arena
 		var platform = game.physics.p2.createCollisionGroup();
 		var touchPlatform = game.physics.p2.createCollisionGroup();
+		var collectable = game.physics.p2.createCollisionGroup();
 		game.physics.p2.enable(platform); //enable physics for walls
 
 		//game.physics.p2.updateBoundsCollisionGroup(); //toggle this on and off
@@ -184,7 +190,7 @@ Play.prototype = {
 		game.add.existing(player);
 		player.enableBody = true; 
 		player.body.setCollisionGroup(touchPlatform);
-		player.body.collides([platform]/*, refreshJump, this*/);
+		player.body.collides([platform/*, collectable*/]/*, refreshJump, this*/);
 		player.body.onBeginContact.add(refreshJump, this);
 
 
@@ -223,6 +229,13 @@ Play.prototype = {
 		jumpNoise.volume = 0.5;
 		deathFallNoise = game.add.audio('deathFall');
 
+		function toNextLevel(body, bodyB, shapeA, shapeB, equation){
+			endArrow.destroy();
+			//increment level
+			this.level = this.level+1;
+			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
+		}
+
 		
 		endArrow = new EndArrow(game, 1160, 110, 'betaArrow');
 		game.add.existing(endArrow);
@@ -231,14 +244,13 @@ Play.prototype = {
 		endArrow.body.setCollisionGroup(platform); //this line causes error
 		//end level if player runs into arrow
 		endArrow.body.collides([touchPlatform]/*, toNextLevel, this*/);
-		//endArrow.body.onBeginContact.add(toNextlevel, this);
+		endArrow.body.onBeginContact.add(toNextLevel, this);
 
-		function toNextLevel(body, bodyB, shapeA, shapeB, equation){
-			endArrow.destroy();
-			//increment level
-			this.level = this.level+1;
-			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
-		}
+		/*function contactTest(body, bodyB, shapeA, shapeB, equation){
+			game.stage.backgroundColor = "#FACADE";
+		}*/
+
+		
 
 		//endArrow.body.onBeginContact.add(toNextlevel, this);
 
