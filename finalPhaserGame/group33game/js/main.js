@@ -1,7 +1,7 @@
 //Main Project
 "use strict"; //use strict
 
-var game = new Phaser.Game(1000, 1320, Phaser.AUTO);
+var game = new Phaser.Game(1200, 1320, Phaser.AUTO);
 
 //declare variables
 var player;
@@ -32,15 +32,15 @@ MainMenu.prototype = {
 		console.log('MainMenu: preload');
 		// preload assets
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
-		game.load.image('testArena', 'assets/img/testArena.png');
+		game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
 		game.load.image('collideTest', 'assets/img/testSprite.png');
 		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
 		game.load.image('betaArrow', 'assets/img/betaArrow.png');
 		game.load.image('controlWindow', 'assets/img/controlWindow.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
-		game.load.image('caveBackground', 'assets/img/betaCaveBG.png');
-		game.load.physics('stageHitbox', 'js/json/betaStage.json', null);
+		game.load.image('caveBackground', 'assets/img/betaCaveBGWide.png');
+		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
 		game.load.audio('jumpSound', ['assets/audio/jump.wav']);
 		game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
@@ -76,6 +76,15 @@ Cutscene.prototype = {
 	},
 	create: function(){
 		console.log('Cutscene: create');
+
+		/*windNoise = new Phaser.Sound(game, 'windNoise', 0.35, false);
+		//set up volume if music sound is too much or little
+		windNoise.volume = 0.35;
+		windNoise.play();*/
+		windNoise = game.add.audio('windNoise');
+		windNoise.volume = 0.7;
+		windNoise.play();
+
 		cutsceneTime = 0;
 		CutsceneText = game.add.text(16, 16, 
 			'Placeholder Cutscene Text \n',
@@ -167,7 +176,7 @@ Play.prototype = {
 		//touchPlatform.enableBody = true;
 
 		//control window
-		var controlWindow = game.add.sprite(game.width/2, 240, 'controlWindow');
+		var controlWindow = game.add.sprite(game.width/2, 300, 'controlWindow');
 		controlWindow.anchor.set(0.5);
 		controlWindow.alpha = 0.2;
 
@@ -197,7 +206,7 @@ Play.prototype = {
 
 		lowY = 200;
 		highY = 1200;
-		waterfallPlatform = new WheelPlatform(game, 850, 1000, 'wheelPlatform');
+		waterfallPlatform = new WheelPlatform(game, 1050, 1000, 'wheelPlatform');
 		game.add.existing(waterfallPlatform);
 		waterfallPlatform.enableBody = true;
 		waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
@@ -214,12 +223,8 @@ Play.prototype = {
 		jumpNoise.volume = 0.5;
 		deathFallNoise = game.add.audio('deathFall');
 
-		windNoise = new Phaser.Sound(game, 'windNoise', 0.25, true);
-		//set up volume if music sound is too much or little
-		windNoise.volume = 0.25;
-		windNoise.play();
-
-		endArrow = new EndArrow(game, 960, 230, 'betaArrow');
+		
+		endArrow = new EndArrow(game, 1160, 110, 'betaArrow');
 		game.add.existing(endArrow);
 		endArrow.enableBody = true;
 		endArrow.physicsBodyType = Phaser.Physics.P2JS;
@@ -266,7 +271,7 @@ Play.prototype = {
 		//kill player command (CURRENTLY NOT WOKRING)
 
 		//waterfall platform movement
-		var platformSpeed = 118; //speed at which platform changes x
+		var platformSpeed = 130; //speed at which platform changes x
 
 		//swap directions
 		/*if(waterfallPlatform.y >= 600){ //upper limit

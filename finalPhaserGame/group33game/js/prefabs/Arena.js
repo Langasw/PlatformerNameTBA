@@ -9,12 +9,12 @@ function Arena(game, xPass, yPass, key/*, frame*/){
 	game.physics.p2.enable(this); //enable physics
 	this.body.clearShapes();
 	//load body
-	this.body.loadPolygon('stageHitbox', 'lowerCliff');
-	this.body.loadPolygon('stageHitbox', 'housePlatform');
-	this.body.loadPolygon('stageHitbox', 'caveLeft');
-	this.body.loadPolygon('stageHitbox', 'caveRight');
-	this.body.loadPolygon('stageHitbox', 'waterFall');
-	this.body.loadPolygon('stageHitbox', 'garden');
+	this.body.loadPolygon('stageHitboxWide', 'lowerCliff');
+	this.body.loadPolygon('stageHitboxWide', 'housePlatform');
+	this.body.loadPolygon('stageHitboxWide', 'caveLeft');
+	this.body.loadPolygon('stageHitboxWide', 'caveRight');
+	this.body.loadPolygon('stageHitboxWide', 'waterFall');
+	this.body.loadPolygon('stageHitboxWide', 'garden');
 
 	//this.enableBody = true; //enable body
 	//this.body.setRectangle(50, 84);
