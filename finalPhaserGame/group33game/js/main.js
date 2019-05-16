@@ -33,6 +33,7 @@ MainMenu.prototype = {
 		// preload assets
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		game.load.image('testArena', 'assets/img/testArenaWide.png');
+		game.load.image('testRuins', 'assets/img/testRuins.png');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
 		game.load.image('collideTest', 'assets/img/testSprite.png');
 		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
@@ -40,6 +41,9 @@ MainMenu.prototype = {
 		game.load.image('controlWindow', 'assets/img/controlWindow.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
 		game.load.image('caveBackground', 'assets/img/betaCaveBGWide.png');
+		game.load.image('Bridge1', 'assets/img/Bridge1.png');
+		game.load.image('Bridge2', 'assets/img/Bridge2.png');
+		game.load.image('Bridge3', 'assets/img/Bridge3.png');
 		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
 		game.load.audio('jumpSound', ['assets/audio/jump.wav']);
@@ -79,10 +83,6 @@ Cutscene.prototype = {
 	create: function(){
 		console.log('Cutscene: create');
 
-		/*windNoise = new Phaser.Sound(game, 'windNoise', 0.35, false);
-		//set up volume if music sound is too much or little
-		windNoise.volume = 0.35;
-		windNoise.play();*/
 		windNoise = game.add.audio('windNoise');
 		windNoise.volume = 0.3;
 		windNoise.play();
@@ -93,20 +93,51 @@ Cutscene.prototype = {
 			{fontSize: '50px', fill: '#000' });
 		CutsceneText.anchor.set(0.5);
 		CutsceneText.align = 'center';
-
 		game.stage.backgroundColor = "#FACADE";
+		//take cutscene text
+		if(this.level == 1){
+			CutsceneText.text = 'Level 1 Placeholder Text\n';
+		}else if(this.level == 2){
+			CutsceneText.text = 'Level 2 Placeholder Text\n';
+		}else if(this.level == 3){
+			CutsceneText.text = 'Level 3 Placeholder Text\n';
+		}else if(this.level == 4){
+			CutsceneText.text = 'Level 4 Placeholder Text\n';
+		}else if(this.level == 5){
+			CutsceneText.text = 'Level 5 Placeholder Text\n';
+		}else if(this.level == 6){
+			CutsceneText.text = 'Level 6 Placeholder Text\n';
+		}else if(this.level == 7){
+			CutsceneText.text = 'Level 7 Placeholder Text\n';
+		}else if(this.level == 8){
+			CutsceneText.text = 'Level 8 Placeholder Text\n';
+		}else if(this.level == 9){
+			CutsceneText.text = 'Level 9 Placeholder Text\n';
+		}else if(this.level == 10){
+			CutsceneText.text = 'Level 10 Placeholder Text\n';
+		}else if(this.level == 11){
+			CutsceneText.text = 'Ending Placeholder Text\n';
+		}else if(this.level == 12){
+			CutsceneText.text = 'Alternate Ending Placeholder Text\n';
+		}
 	},
 	update: function(){
 		cutsceneTime++; //increment cutscene time
-		if(cutsceneTime > cutsceneLength){
+		if(cutsceneTime == cutsceneLength){
 			CutsceneText.text =
-			'Placeholder Cutscene Text\n' +
+			CutsceneText.text +
 			'Press Space to Continue';
 		}
 		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && (cutsceneTime > cutsceneLength)){ 
 		//space bar is pressed and cutscene time is enough
 			cutsceneTime = 0;
-			game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
+			if(this.level <= 10){ //if the game is in a standard level #
+				game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
+			}else{
+				currentLevel = 1;
+				game.state.start('MainMenu', true, false, this.level);
+			}
+			
 		}
 	}
 }
@@ -127,26 +158,21 @@ Play.prototype = {
 		//obsts.debug = true;
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
-		/*var worldBounds = new Phaser.Rectangle(0,0,1000,1500);
-		customBounds = {left: null, right: null, top: null, bottom: null};
-		createPreviewBounds(bounds.x, bounds.y, bounds.width, bounds.height);
-		*/
-
 		//put in blue background
 		game.stage.backgroundColor = "#1D5986";
 
-		//set up background
-		game.add.sprite(0,0, 'caveBackground');
+		//load all sound effects
+		jumpNoise = game.add.audio('jumpSound');
+		jumpNoise.volume = 0.5;
+		deathFallNoise = game.add.audio('deathFall');
 
-		//set up arena
+		//set up collision groups
 		var platform = game.physics.p2.createCollisionGroup();
 		var touchPlatform = game.physics.p2.createCollisionGroup();
 		var collectable = game.physics.p2.createCollisionGroup();
 		game.physics.p2.enable(platform); //enable physics for walls
 
-		//game.physics.p2.updateBoundsCollisionGroup(); //toggle this on and off
-
-		//put in secret walls
+		//put in secret walls (bounds for left and right sides_)
 		var leftWall = game.add.sprite(-20, game.height/2, 'secretWalls');
 		game.physics.p2.enable(leftWall); //enable physics
 		leftWall.body.clearShapes();
@@ -165,27 +191,127 @@ Play.prototype = {
 		rightWall.body.collides([touchPlatform]);
 		rightWall.body.kinematic = true;
 
-		//platform.enableBody = true; 
+		//set up the proper backgrounds
+		if(this.level > 0 && this.level <= 8){ //between 1-8
+			//put in arena 1 BG
+			game.add.sprite(0,0, 'caveBackground');
+
+		}else if(this.level == 9){
+			//ruined arena
+			game.add.sprite(0,0, 'caveBackground');
+
+		}else if(this.level == 10){
+			//final arena
+		}else if(this.level == 11){
+			//this is the ending
+		}else if(this.level == 12){
+			//this is the alternate ending
+		}
+
+		//create bridges
+		if(this.level > 0 && this.level <= 3){ //if between levels 1 and 3, create bridge 1
+			var bridge1 = game.add.sprite(270, 735, 'Bridge1'); //leftmost bridge
+			game.physics.p2.enable(bridge1);
+			bridge1.physicsBodyType = Phaser.Physics.P2JS;
+			bridge1.body.clearShapes();
+			bridge1.body.setRectangle(230, 30);
+			bridge1.body.setCollisionGroup(platform);
+			bridge1.body.collides([touchPlatform]);
+			bridge1.body.kinematic = true;
+		}
+		if(this.level > 0 && this.level <= 5){ //if between levels 1 and 3, also create bridges 2+3
+			//create bridges
+			var bridge2 = game.add.sprite(870, 690, 'Bridge2'); //rightmost L-shape bridge
+			var bridge3 = game.add.sprite(580, 1090, 'Bridge1'); //bottom cave bridge
+			game.physics.p2.enable([bridge2, bridge3]);
+			bridge2.physicsBodyType = Phaser.Physics.P2JS;
+			bridge3.physicsBodyType = Phaser.Physics.P2JS;
+
+			bridge2.body.clearShapes();
+			bridge2.body.addRectangle(100, 17, 0, 40);//__, y offset is 40
+			bridge2.body.addRectangle(20, 87, 30, 0); // |, x offset is 30
+
+			bridge3.body.clearShapes();
+			bridge3.body.setRectangle(150, 25);
+
+			bridge2.body.setCollisionGroup(platform);
+			bridge2.body.collides([touchPlatform]);
+			bridge3.body.setCollisionGroup(platform);
+			bridge3.body.collides([touchPlatform]);
+			
+			bridge2.body.kinematic = true;
+			bridge3.body.kinematic = true;
+		}
+
+		//set up the proper arenas
+
+		//level 1-8 arena setup
+		if(this.level > 0 && this.level <= 8){ //between 1-8
+			//put in arena
+			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testArena');
+			game.add.existing(arena);
+			arena.enableBody = true;
+			arena.physicsBodyType = Phaser.Physics.P2JS;
+			arena.body.setCollisionGroup(platform);
+			arena.body.collides([touchPlatform]);
+			arena.body.immovable = true;
+			
+			//put waterfall platform switch creation HERE
+
+			//put waterfall platform creation HERE after code is more fixed
+			waterfallPlatform = new WheelPlatform(game, 1050, 1000, 'wheelPlatform');
+			game.add.existing(waterfallPlatform);
+			waterfallPlatform.enableBody = true;
+			waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
+			waterfallPlatform.body.setCollisionGroup(platform); 
+			waterfallPlatform.body.collides([touchPlatform]);
+
+			//game.physics.p2.updateBoundsCollisionGroup(); //toggle this on and off
+		}else if(this.level == 9){
+			//ruined arena
+
+			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testRuins');
+			game.add.existing(arena);
+			arena.enableBody = true;
+			arena.physicsBodyType = Phaser.Physics.P2JS;
+			arena.body.setCollisionGroup(platform);
+			arena.body.collides([touchPlatform]);
+			arena.body.immovable = true;
+
+		}else if(this.level == 10){
+			//final arena
+		}else if(this.level == 11){
+			//this is the ending
+		}
+
 
 		
-		arena = new Arena(game, (game.width)/2, (game.height)/2, 'testArena');
-		game.add.existing(arena);
-		arena.enableBody = true;
-		arena.physicsBodyType = Phaser.Physics.P2JS;
-		arena.body.setCollisionGroup(platform);
-		arena.body.collides([touchPlatform]);
-		arena.body.immovable = true;
-		//arena.enableBody = true;
-		//game.physics.arcade.enable(arena, Phaser.Physics.ARCADE); //enable physics for walls
-	
-		//touchPlatform = game.add.group(); //items that have collision w walls
-		//touchPlatform.enableBody = true;
+		
 
-		//control window
-		var controlWindow = game.add.sprite(game.width/2, 300, 'controlWindow');
-		controlWindow.anchor.set(0.5);
-		controlWindow.alpha = 0.2;
+		//level specific tools
+		if(this.level == 1){ //control window and waterfall y values
+			//control window
+			var controlWindow = game.add.sprite(game.width/2, 300, 'controlWindow');
+			controlWindow.anchor.set(0.5);
+			controlWindow.alpha = 0.2;
 
+		}else if(this.level == 2){//house 1, a updown cloud, and waterfall y values
+
+		}else if(this.level == 3){//house 2, updown cloud, horizontal cloud, two death clouds, and waterfall y values
+
+		}else if(this.level == 4){//house 3, two vertical clouds, two death clouds, and waterfall y values
+
+		}else if(this.level == 5){//main house, horizontal cloud, and waterfall y values
+
+		}else if(this.level == 6){//main house, horizontal cloud, smoke, and waterfall y values
+
+		}else if(this.level == 7){//main house, two verical clouds, smoke, and waterfall y values
+
+		}else if(this.level == 8){//burning house, horizontal cloud, smoke, and waterfall y values
+
+		}
+
+		//create player
 		player = new Player(game, 100, 390, 'characterSpritesheet', 'Walk1');
 		game.add.existing(player);
 		player.enableBody = true; 
@@ -200,6 +326,7 @@ Play.prototype = {
 		player.animations.add('jumping', [1, 1, 2, 3, 3, 3, 3, 3, 0], 12, false); //
 		//player.animations.add('falling', [0], 10, true); //moving sprite is third on tempSpritesheet
 		player.animations.add('landing', [4, 4, 4], 10, true) //
+		player.scale.set(0.8);
 
 		//player.body.collideWorldBounds = true;
 		function refreshJump(body, bodyB, shapeA, shapeB, equation){
@@ -212,12 +339,8 @@ Play.prototype = {
 
 		lowY = 200;
 		highY = 1200;
-		waterfallPlatform = new WheelPlatform(game, 1050, 1000, 'wheelPlatform');
-		game.add.existing(waterfallPlatform);
-		waterfallPlatform.enableBody = true;
-		waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
-		waterfallPlatform.body.setCollisionGroup(platform); 
-		waterfallPlatform.body.collides([touchPlatform]);
+
+		
 		upward = 0;
 
 		testTimer = 0;
@@ -225,14 +348,11 @@ Play.prototype = {
 		jumpAnimOnce = 0;
 		direction = 0;
 
-		jumpNoise = game.add.audio('jumpSound');
-		jumpNoise.volume = 0.5;
-		deathFallNoise = game.add.audio('deathFall');
-
 		function toNextLevel(body, bodyB, shapeA, shapeB, equation){
 			endArrow.destroy();
 			//increment level
-			this.level = this.level+1;
+			//this.level = this.level+1;
+			currentLevel++;
 			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 		}
 
@@ -259,14 +379,6 @@ Play.prototype = {
 	},
 	update: function(){
 		var playerVelocity = 200; //CHANGE PLAYER VELOCITY HERE
-		//hit detection for player to platform
-		//var hitWall = game.physics.arcade.collide(player, arena);
-		//var hitWall = game.physics.arcade.overlap(arena, player);
-		//var worldContact = game.physics.p2.createContactMaterial(player, arena);
-
-		//end level if player runs into arrow
-		//player.body.collides(endArrow, toNextLevel, this);
-
 		//create keyboard
 		this.cursors = game.input.keyboard.createCursorKeys();
 
@@ -275,12 +387,14 @@ Play.prototype = {
 
 		//player dies if they fall into a pit (CURRENTLY NOT WORKING)
 		if(player.y > 1450){ //if they exceed y value too much (i.e fall out of world bounds)
-			//game.state.start('Play', true, false, this.level); //move to Play if player dies
-			//player.destroy();
-			game.state.start('Play', true, false, this.level); //move to Play if player dies
-			deathFallNoise.play(); //play death sound
+			if(this.level == 10){ //if they die in the last level
+				currentLevel = 12;
+				game.state.start('Cutscene', true, false, this.level); //move to alternate ending
+			}else{
+				game.state.start('Play', true, false, this.level); //move to Play if player dies
+				deathFallNoise.play(); //play death sound
+			}
 		}
-		//kill player command (CURRENTLY NOT WOKRING)
 
 		//waterfall platform movement
 		var platformSpeed = 130; //speed at which platform changes x
@@ -308,20 +422,20 @@ Play.prototype = {
 		}
 
 		//general movement of platform
-		if(upward == 0){
+		/*if(upward == 0){
 			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
 		}else if(upward == 1){
 			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
-		}
+		}*/
 
 		//jumping movement
 		if(this.cursors.up.isDown){
 			if(jumpOnce == 0){
 				player.body.velocity.y = -250; //jump
-				player.animations.play('jumping');
+				//player.animations.play('jumping');
 				jumpNoise.play(); //play jump sound
 			}
-			jumpOnce = 1
+			jumpOnce = 1;
 		}else{
 			//jumpOnce = 0;
 		}
@@ -352,7 +466,7 @@ Play.prototype = {
 
 		//animation control
 		if(this.cursors.up.isPressed){ //upward movement
-			if(jumpAnimOnce = 0){
+			if(jumpAnimOnce == 0){
 				player.animations.play('jumping');
 			}
 			jumpAnimOnce = 1;
@@ -367,7 +481,8 @@ Play.prototype = {
 		}
 		//debug, reset jump animation
 		if(this.cursors.down.isDown){
-			jumpOnce = 1;
+			jumpOnce = 0;
+			jumpAnimOnce = 0;
 		}
 
 		//refresh jump function check
