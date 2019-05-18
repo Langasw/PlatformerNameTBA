@@ -34,6 +34,7 @@ MainMenu.prototype = {
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testRuins', 'assets/img/testRuins.png');
+		game.load.image('testFinal', 'assets/img/testFinal.png');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
 		game.load.image('collideTest', 'assets/img/testSprite.png');
 		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
@@ -280,6 +281,15 @@ Play.prototype = {
 
 		}else if(this.level == 10){
 			//final arena
+
+			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testFinal');
+			game.add.existing(arena);
+			arena.enableBody = true;
+			arena.physicsBodyType = Phaser.Physics.P2JS;
+			arena.body.setCollisionGroup(platform);
+			arena.body.collides([touchPlatform]);
+			arena.body.immovable = true;
+
 		}else if(this.level == 11){
 			//this is the ending
 		}
