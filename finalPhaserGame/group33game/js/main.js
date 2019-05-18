@@ -24,6 +24,7 @@ var testTimer = 0;
 var jumpNoise;
 var deathFallNoise;
 var windNoise;
+var clickButton = false;
 
 //Main Menu state
 var MainMenu = function(game) {};
@@ -31,6 +32,18 @@ MainMenu.prototype = {
 	preload: function(){
 		console.log('MainMenu: preload');
 		// preload assets
+
+		//title screen assets
+		game.load.image('titleImage', 'assets/img/TitleBackground.png');
+		game.load.image('titleName', 'assets/img/Title.png');
+		game.load.image('Petal3', 'assets/img/Petal3.png');
+		game.load.image('Petal2', 'assets/img/Petal2.png');
+		game.load.image('Blossom', 'assets/img/Petal1.png');
+		game.load.image('PlayButton', 'assets/img/PlayButton.png');
+		game.load.image('CreditButton', 'assets/img/CreditButton.png');
+		game.load.image('Select', 'assets/img/SelectIcon.png');
+		//----
+
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testRuins', 'assets/img/testRuins.png');
@@ -53,23 +66,56 @@ MainMenu.prototype = {
 	},
 	create: function() {
 		console.log('MainMenu: create');
+
+		//adds the background image to the title screen
+		this.add.image(0,0,'titleImage');
+
+		//creates the petal falling animation and wrap
+		for (var j =0; j < 40; j++){
+			this.petalOne = new Title(game, 'Petal2');
+			game.add.existing(this.petalOne);
+
+			this.petalTwo = new Title(game, 'Petal3');
+			game.add.existing(this.petalTwo);
+
+			//this.Blossom = new Title(game, 'Blossom');
+			//game.add.existing(this.Blossom);
+		}
+
+		//adds the title, play and credit icons
+		this.add.image(200,350, 'titleName');
+
+		//allows the user to click on the play button
+		var ButtonPlay = this.add.image(525,925, 'PlayButton');
+		ButtonPlay.inputEnabled = true;
+		ButtonPlay.events.onInputDown.add(playButtonClicked, this);
+		this.add.image(500,1050, 'CreditButton');
+
+		
 		//generate start screen
 		var MainMenuText;
 		//check to see if format is right if it fails
-		MainMenuText = game.add.text(game.width/2, (game.height/2)-200, 
+		/*MainMenuText = game.add.text(game.width/2, (game.height/2)-200, 
 			'Use Left, Right, and Up to Move \n' +
 			'Press Space to Begin!', 
 			{fontSize: '32px', fill: '#000' });
 		game.stage.backgroundColor = "#FACADE";
 		MainMenuText.anchor.set(0.5);
-		MainMenuText.align = 'center';
+		MainMenuText.align = 'center';*/
 	},
 	update: function(){
 		//main menu logic
-		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+		//changes state when the play button is clicked
+		if(clickButton == true){
+			clickButton = false;
 			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 		}
 	}
+}
+
+//function is used for any situation when the play button is clicked
+function playButtonClicked(){
+	clickButton = true;
 }
 //Cutscene state
 var Cutscene = function(game){};
