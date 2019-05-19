@@ -24,7 +24,8 @@ var testTimer = 0;
 var jumpNoise;
 var deathFallNoise;
 var windNoise;
-var clickButton = false;
+var playClick = false;
+var creditsClick = false;
 
 //Main Menu state
 var MainMenu = function(game) {};
@@ -58,7 +59,18 @@ MainMenu.prototype = {
 		game.load.image('Bridge1', 'assets/img/Bridge1.png');
 		game.load.image('Bridge2', 'assets/img/Bridge2.png');
 		game.load.image('Bridge3', 'assets/img/Bridge3.png');
+		game.load.image('deathCloudA', 'assets/img/FireLevel3.png');
+		game.load.image('deathCloudB', 'assets/img/FireLevel4A.png');
+		game.load.image('deathCloudC', 'assets/img/FireLevel4B.png');
+		game.load.image('deathCloudD', 'assets/img/FireLevel8.png');
+		game.load.image('deathHouse', 'assets/img/FireHouse.png');
+		game.load.image('house1', 'assets/img/house1.png');
+		game.load.image('house2', 'assets/img/house2.png');
+		game.load.image('house3', 'assets/img/house3.png');
+		game.load.image('houseFinal', 'assets/img/houseFinal.png');
 		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
+		//game.load.physics('houseHitbox', 'js/json/houseHitbox.json', null);
+		game.load.physics('housePhysics', 'js/json/houseHitbox.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
 		game.load.audio('jumpSound', ['assets/audio/jump.wav']);
 		game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
@@ -89,7 +101,9 @@ MainMenu.prototype = {
 		var ButtonPlay = this.add.image(525,925, 'PlayButton');
 		ButtonPlay.inputEnabled = true;
 		ButtonPlay.events.onInputDown.add(playButtonClicked, this);
-		this.add.image(500,1050, 'CreditButton');
+		var ButtonCredits = this.add.image(500,1050, 'CreditButton');
+		ButtonCredits.inputEnabled = true;
+		ButtonCredits.events.onInputDown.add(creditsButtonClicked, this);
 
 		
 		//generate start screen
@@ -106,16 +120,24 @@ MainMenu.prototype = {
 	update: function(){
 		//main menu logic
 		//changes state when the play button is clicked
-		if(clickButton == true){
-			clickButton = false;
+		if(playClick== true){
+			playClick = false;
 			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 		}
+		if(creditsClick == true){
+			creditsClick = false;
+			game.state.start('Credits', true, false, this.level); //move to Cutscene if spacebar is pressed
+		}
+
 	}
 }
 
 //function is used for any situation when the play button is clicked
 function playButtonClicked(){
-	clickButton = true;
+	playClick = true;
+}
+function creditsButtonClicked(){
+	creditsClick = true;
 }
 //Cutscene state
 var Cutscene = function(game){};
@@ -206,7 +228,7 @@ Play.prototype = {
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
 		//put in blue background
-		game.stage.backgroundColor = "#1D5986";
+		game.stage.backgroundColor = "#4477b2";
 
 		//load all sound effects
 		jumpNoise = game.add.audio('jumpSound');
@@ -217,6 +239,7 @@ Play.prototype = {
 		var platform = game.physics.p2.createCollisionGroup();
 		var touchPlatform = game.physics.p2.createCollisionGroup();
 		var collectable = game.physics.p2.createCollisionGroup();
+		var deathTouch = game.physics.p2.createCollisionGroup();
 		game.physics.p2.enable(platform); //enable physics for walls
 
 		//put in secret walls (bounds for left and right sides_)
@@ -255,9 +278,51 @@ Play.prototype = {
 			//this is the alternate ending
 		}
 
+		//set up houses
+		if(this.level == 2 ){ //level 2
+			//load house 1 background image
+			var house = game.add.sprite(600, 450, 'house1');
+			house.anchor.set(0.5);
+
+		}else if(this.level == 3){ //level 3
+			var house = game.add.sprite(600, 450, 'house2');
+			house.anchor.set(0.5);
+
+		}else if(this.level == 4){ //level 4
+			var house = game.add.sprite(600, 450, 'house3');
+			house.anchor.set(0.5);
+
+
+		}else if(this.level >= 5 && this.level <= 7){ //level 5-7
+			var house = game.add.sprite(600, 450, 'houseFinal');
+			house.enableBody = true;
+			game.physics.p2.enable(house);
+			house.physicsBodyType = Phaser.Physics.P2JS;
+			house.body.clearShapes();
+			//house.body.loadPolygon('houseHitbox', 'houseHitbox');
+			house.body.loadPolygon('housePhysics', 'normalHitbox');
+			house.body.setCollisionGroup(platform);
+			house.body.collides([touchPlatform]);
+			house.body.kinematic = true;
+
+		}else if(this.level == 8){ //level 8
+			//load house on fire
+			var deathHouse = game.add.sprite(600, 450, 'deathHouse');
+			deathHouse.enableBody = true;
+			game.physics.p2.enable(deathHouse);
+			deathHouse.physicsBodyType = Phaser.Physics.P2JS;
+			deathHouse.body.clearShapes();
+			//deathHouse.body.loadPolygon('houseHitbox', 'fireHitbox');
+			deathHouse.body.loadPolygon('housePhysics', 'fireHitbox');
+			deathHouse.body.setCollisionGroup(platform);
+			deathHouse.body.collides([touchPlatform]);
+			deathHouse.body.kinematic = true;
+			deathHouse.body.onBeginContact.add(killPlayer, this);
+		}
+
 		//create bridges
 		if(this.level > 0 && this.level <= 3){ //if between levels 1 and 3, create bridge 1
-			var bridge1 = game.add.sprite(270, 735, 'Bridge1'); //leftmost bridge
+			var bridge1 = game.add.sprite(260, 735, 'Bridge1'); //leftmost bridge
 			game.physics.p2.enable(bridge1);
 			bridge1.physicsBodyType = Phaser.Physics.P2JS;
 			bridge1.body.clearShapes();
@@ -306,7 +371,7 @@ Play.prototype = {
 			//put waterfall platform switch creation HERE
 
 			//put waterfall platform creation HERE after code is more fixed
-			waterfallPlatform = new WheelPlatform(game, 1050, 1000, 'wheelPlatform');
+			waterfallPlatform = new WheelPlatform(game, 1050, 1000, 'wheelPlatform', 600, 900, 180); //game, x, y, image key, lowest y, highest y, speed
 			game.add.existing(waterfallPlatform);
 			waterfallPlatform.enableBody = true;
 			waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
@@ -354,17 +419,103 @@ Play.prototype = {
 		}else if(this.level == 2){//house 1, a updown cloud, and waterfall y values
 
 		}else if(this.level == 3){//house 2, updown cloud, horizontal cloud, two death clouds, and waterfall y values
+			var deathCloud1 = game.add.sprite(775, 580, 'deathCloudA');
+			deathCloud1.enableBody = true;
+			game.physics.p2.enable(deathCloud1);
+			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
+			deathCloud1.body.clearShapes();
+			deathCloud1.body.setRectangle(40, 175);
+			deathCloud1.body.setCollisionGroup(platform);
+			deathCloud1.body.collides([touchPlatform]);
+			deathCloud1.body.kinematic = true;
+			deathCloud1.body.onBeginContact.add(killPlayer, this);
+
+			var deathCloud2 = game.add.sprite(750, 960, 'deathCloudA');
+			deathCloud2.enableBody = true;
+			game.physics.p2.enable(deathCloud2);
+			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
+			deathCloud2.body.clearShapes();
+			deathCloud2.body.setRectangle(40, 180);
+			deathCloud2.body.setCollisionGroup(platform);
+			deathCloud2.body.collides([touchPlatform]);
+			deathCloud2.body.kinematic = true;
+			deathCloud2.body.onBeginContact.add(killPlayer, this);
 
 		}else if(this.level == 4){//house 3, two vertical clouds, two death clouds, and waterfall y values
+			var deathCloud1 = game.add.sprite(1030, 705, 'deathCloudB');
+			deathCloud1.enableBody = true;
+			game.physics.p2.enable(deathCloud1);
+			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
+			deathCloud1.body.clearShapes();
+			deathCloud1.body.setRectangle(160, 40);
+			deathCloud1.body.setCollisionGroup(platform);
+			deathCloud1.body.collides([touchPlatform]);
+			deathCloud1.body.kinematic = true;
+			deathCloud1.body.onBeginContact.add(killPlayer, this);
+
+			var deathCloud2 = game.add.sprite(830, 250, 'deathCloudC');
+			deathCloud2.enableBody = true;
+			game.physics.p2.enable(deathCloud2);
+			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
+			deathCloud2.body.clearShapes();
+			deathCloud2.body.setRectangle(50, 430);
+			deathCloud2.body.setCollisionGroup(platform);
+			deathCloud2.body.collides([touchPlatform]);
+			deathCloud2.body.kinematic = true;
+			deathCloud2.body.onBeginContact.add(killPlayer, this);
 
 		}else if(this.level == 5){//main house, horizontal cloud, and waterfall y values
 
+
 		}else if(this.level == 6){//main house, horizontal cloud, smoke, and waterfall y values
 
+			var deathCloud2 = game.add.sprite(380, 460, 'deathCloudC');
+			deathCloud2.enableBody = true;
+			game.physics.p2.enable(deathCloud2);
+			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
+			deathCloud2.body.clearShapes();
+			deathCloud2.body.setRectangle(50, 430);
+			deathCloud2.body.setCollisionGroup(platform);
+			deathCloud2.body.collides([touchPlatform]);
+			deathCloud2.body.kinematic = true;
+			deathCloud2.body.onBeginContact.add(killPlayer, this);
+
 		}else if(this.level == 7){//main house, two verical clouds, smoke, and waterfall y values
+			var deathCloud1 = game.add.sprite(1020, 705, 'deathCloudB');
+			deathCloud1.enableBody = true;
+			game.physics.p2.enable(deathCloud1);
+			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
+			deathCloud1.body.clearShapes();
+			deathCloud1.body.setRectangle(160, 40);
+			deathCloud1.body.setCollisionGroup(platform);
+			deathCloud1.body.collides([touchPlatform]);
+			deathCloud1.body.kinematic = true;
+			deathCloud1.body.onBeginContact.add(killPlayer, this);
+
+			var deathCloud2 = game.add.sprite(600, 150, 'deathCloudB'); //change this later to be on top of the chimney
+			deathCloud2.enableBody = true;
+			game.physics.p2.enable(deathCloud2);
+			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
+			deathCloud2.body.clearShapes();
+			deathCloud2.body.setRectangle(160, 40);
+			deathCloud2.body.setCollisionGroup(platform);
+			deathCloud2.body.collides([touchPlatform]);
+			deathCloud2.body.kinematic = true;
+			deathCloud2.body.onBeginContact.add(killPlayer, this);
 
 		}else if(this.level == 8){//burning house, horizontal cloud, smoke, and waterfall y values
+			var deathCloud1 = game.add.sprite(1043, 705, 'deathCloudD');
+			deathCloud1.enableBody = true;
+			game.physics.p2.enable(deathCloud1);
+			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
+			deathCloud1.body.clearShapes();
+			deathCloud1.body.setRectangle(160, 40);
+			deathCloud1.body.setCollisionGroup(platform);
+			deathCloud1.body.collides([touchPlatform]);
+			deathCloud1.body.kinematic = true;
+			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
+			
 		}
 
 		//create player
@@ -412,6 +563,12 @@ Play.prototype = {
 			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 		}
 
+		function killPlayer(body, bodyB, shapeA, shapeB, equation){
+			
+			game.state.start('Play', true, false, this.level); //move to Play if player dies
+			deathFallNoise.play(); //play death sound
+		}
+
 		
 		endArrow = new EndArrow(game, 1160, 110, 'betaArrow');
 		game.add.existing(endArrow);
@@ -452,37 +609,16 @@ Play.prototype = {
 			}
 		}
 
-		//waterfall platform movement
-		var platformSpeed = 130; //speed at which platform changes x
-
-		//swap directions
-		/*if(waterfallPlatform.y >= 600){ //upper limit
-			upward = 1; //go down
-		}else if(waterfallPlatform.y <= 900){ //lower limit
-			upward = 0; //go up
-		}else{
-		}*/
-
-		/*if(player.body.x >= 400){ //upper limit
-			upward = 1; //go down
-		}else if(player.body.x <= 900){ //lower limit
-			upward = 0; //go up
-		}*/
-
-		testTimer++;
+		
+		/*testTimer++;
 		if(testTimer == 300){
 			upward = 1;
 		}else if(testTimer == 600){
 			upward = 0;
 			testTimer = 0;
-		}
-
-		//general movement of platform
-		/*if(upward == 0){
-			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
-		}else if(upward == 1){
-			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
 		}*/
+
+		
 
 		//jumping movement
 		if(this.cursors.up.isDown){
@@ -556,6 +692,35 @@ Play.prototype = {
 		//game.debug.spriteInfo(player, 32, 32);
 	}
 }
+
+var Credits = function(game) {};
+Credits.prototype = {
+	preload: function(){
+		console.log('Credits: preload');
+	},
+	create: function(){
+		console.log('Credits: create');
+		var CreditsText;
+		//check to see if format is right if something goes wrong
+		CreditsText = game.add.text(16, 16, 
+			'CREDITS \n' +
+			'Role: Kristofer Torres' + "\n" +
+			'Role: Matthew Loebach' + "\n" +
+			'Role: William Hintze' + "\n" +
+			'Press Space to Exit' + "\n" +
+			'this wont be what it looks like in the final game', 
+			{fontSize: '32px', fill: '#000' });
+		game.stage.backgroundColor = "#FACADE";
+	},
+	update: function(){
+		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+			//pass this.score
+			game.state.start('MainMenu', true, false, this.score);
+		}
+	}
+}
+
+
 var GameOver = function(game) {};
 GameOver.prototype = {
 	preload: function(){
@@ -585,6 +750,7 @@ GameOver.prototype = {
 game.state.add('MainMenu', MainMenu);
 game.state.add('Cutscene', Cutscene);
 game.state.add('Play', Play);
+game.state.add('Credits', Credits);
 game.state.add('GameOver', GameOver);
 //start at main menu
 game.state.start('MainMenu');

@@ -1,4 +1,4 @@
-function WheelPlatform(game, xPass, yPass, key, /*lowY, highY, frame*/){
+function WheelPlatform(game, xPass, yPass, key, lowY, highY, speed/*frame*/){
 	//call to Phaser.Sprite
 	//create new sprite 
 	Phaser.Sprite.call(this, game, xPass, yPass, key/*, frame*/); 
@@ -20,12 +20,34 @@ function WheelPlatform(game, xPass, yPass, key, /*lowY, highY, frame*/){
 	this.animations.add('waterfall', [1], 10, true); //moving sprite is second on tempSpritesheet
 	//this.animations.add('still', [2], 10, true); //moving sprite is third on tempSpritesheet
 	this.upward = 0;
+	//var velocity = this.speed;
 }
 
 WheelPlatform.prototype = Object.create(Phaser.Sprite.prototype);
 WheelPlatform.prototype.constructor = WheelPlatform;
 WheelPlatform.prototype.update = function() {
 	//ex: 300
+
+	//waterfall platform movement
+
+	var platformSpeed = this.speed; //speed at which platform changes x
+	//var platformSpeed = 180;
+
+	//general movement of platform
+	if(this.upward == 0){
+		waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
+	}else if(this.upward == 1){
+		waterfallPlatform.body.velocity.y = platformSpeed; //go downward
+	}
+
 	
+	//swap directions
+	if(waterfallPlatform.y >= this.lowY){ //upper limit
+		this.upward = 1; //go down
+	}else if(waterfallPlatform.y <= this.highY){ //lower limit
+		this.upward = 0; //go up
+	}else{
+	}
+
 	
 }
