@@ -1,5 +1,6 @@
 //Main Project
 "use strict"; //use strict
+//update THIS phaser !
 
 var game = new Phaser.Game(1200, 1320, Phaser.AUTO);
 
@@ -53,6 +54,7 @@ MainMenu.prototype = {
 		game.load.image('collideTest', 'assets/img/testSprite.png');
 		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
 		game.load.image('betaArrow', 'assets/img/betaArrow.png');
+		game.load.image('endPetal', 'assets/img/endPetal.png');
 		game.load.image('controlWindow', 'assets/img/controlWindow.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
 		game.load.image('caveBackground', 'assets/img/betaCaveBGWide.png');
@@ -153,7 +155,7 @@ Cutscene.prototype = {
 		console.log('Cutscene: create');
 
 		windNoise = game.add.audio('windNoise');
-		windNoise.volume = 0.3;
+		windNoise.volume = 0.2;
 		windNoise.play();
 
 		cutsceneTime = 0;
@@ -492,7 +494,7 @@ Play.prototype = {
 			deathCloud1.body.kinematic = true;
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
-			var deathCloud2 = game.add.sprite(600, 150, 'deathCloudB'); //change this later to be on top of the chimney
+			var deathCloud2 = game.add.sprite(570, 150, 'deathCloudB'); //change this later to be on top of the chimney
 			deathCloud2.enableBody = true;
 			game.physics.p2.enable(deathCloud2);
 			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -570,7 +572,7 @@ Play.prototype = {
 		}
 
 		
-		endArrow = new EndArrow(game, 1160, 110, 'betaArrow');
+		endArrow = new EndArrow(game, 1160, 110, 'endPetal');
 		game.add.existing(endArrow);
 		endArrow.enableBody = true;
 		endArrow.physicsBodyType = Phaser.Physics.P2JS;
@@ -617,6 +619,26 @@ Play.prototype = {
 			upward = 0;
 			testTimer = 0;
 		}*/
+		//waterfall platform movement
+
+		var platformSpeed = this.speed; //speed at which platform changes x
+		//var platformSpeed = 180;
+
+		//general movement of platform
+		if(this.upward == 0){
+			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
+		}else if(this.upward == 1){
+			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
+		}
+
+	
+		//swap directions
+		if(waterfallPlatform.y >= this.lowY){ //upper limit
+			this.upward = 1; //go down
+		}else if(waterfallPlatform.y <= this.highY){ //lower limit
+			this.upward = 0; //go up
+		}else{
+		}
 
 		
 
