@@ -27,6 +27,7 @@ var deathFallNoise;
 var windNoise;
 var playClick = false;
 var creditsClick = false;
+var platformSpeed = 0;
 
 //Main Menu state
 var MainMenu = function(game) {};
@@ -206,6 +207,7 @@ Cutscene.prototype = {
 				game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
 			}else{
 				currentLevel = 1;
+				windNoise.destroy();
 				game.state.start('MainMenu', true, false, this.level);
 			}
 			
@@ -372,13 +374,6 @@ Play.prototype = {
 			
 			//put waterfall platform switch creation HERE
 
-			//put waterfall platform creation HERE after code is more fixed
-			waterfallPlatform = new WheelPlatform(game, 1050, 1000, 'wheelPlatform', 600, 900, 180); //game, x, y, image key, lowest y, highest y, speed
-			game.add.existing(waterfallPlatform);
-			waterfallPlatform.enableBody = true;
-			waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
-			waterfallPlatform.body.setCollisionGroup(platform); 
-			waterfallPlatform.body.collides([touchPlatform]);
 
 			//game.physics.p2.updateBoundsCollisionGroup(); //toggle this on and off
 		}else if(this.level == 9){
@@ -407,10 +402,8 @@ Play.prototype = {
 			//this is the ending
 		}
 
-
 		
-		
-
+		platformSpeed = 120;
 		//level specific tools
 		if(this.level == 1){ //control window and waterfall y values
 			//control window
@@ -418,7 +411,17 @@ Play.prototype = {
 			controlWindow.anchor.set(0.5);
 			controlWindow.alpha = 0.2;
 
+			//set waterfall platform prefabs
+			platformSpeed = 136;
+			lowY = 320;
+			highY = 900;
+
 		}else if(this.level == 2){//house 1, a updown cloud, and waterfall y values
+
+			//set waterfall platform prefabs
+			platformSpeed = 112;
+			lowY = 320;
+			highY = 460;
 
 		}else if(this.level == 3){//house 2, updown cloud, horizontal cloud, two death clouds, and waterfall y values
 			var deathCloud1 = game.add.sprite(775, 580, 'deathCloudA');
@@ -443,6 +446,11 @@ Play.prototype = {
 			deathCloud2.body.kinematic = true;
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
 
+			//set waterfall platform prefabs
+			platformSpeed = 80;
+			lowY = 820;
+			highY = 1000;
+
 		}else if(this.level == 4){//house 3, two vertical clouds, two death clouds, and waterfall y values
 			var deathCloud1 = game.add.sprite(1030, 705, 'deathCloudB');
 			deathCloud1.enableBody = true;
@@ -466,7 +474,17 @@ Play.prototype = {
 			deathCloud2.body.kinematic = true;
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
 
+			//set waterfall platform prefabs
+			platformSpeed = 150;
+			lowY = 520;
+			highY = 800;
+
 		}else if(this.level == 5){//main house, horizontal cloud, and waterfall y values
+
+			//set waterfall platform prefabs
+			platformSpeed = 50;
+			lowY = 1020;
+			highY = 1200;
 
 
 		}else if(this.level == 6){//main house, horizontal cloud, smoke, and waterfall y values
@@ -481,6 +499,11 @@ Play.prototype = {
 			deathCloud2.body.collides([touchPlatform]);
 			deathCloud2.body.kinematic = true;
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
+
+			//set waterfall platform prefabs
+			platformSpeed = 150;
+			lowY = 500;
+			highY = 1200;
 
 		}else if(this.level == 7){//main house, two verical clouds, smoke, and waterfall y values
 			var deathCloud1 = game.add.sprite(1020, 705, 'deathCloudB');
@@ -505,6 +528,11 @@ Play.prototype = {
 			deathCloud2.body.kinematic = true;
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
 
+			//set waterfall platform prefabs
+			platformSpeed = 140;
+			lowY = 520;
+			highY = 1200;
+
 		}else if(this.level == 8){//burning house, horizontal cloud, smoke, and waterfall y values
 			var deathCloud1 = game.add.sprite(1043, 705, 'deathCloudD');
 			deathCloud1.enableBody = true;
@@ -517,8 +545,14 @@ Play.prototype = {
 			deathCloud1.body.kinematic = true;
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
+			//set waterfall platform prefabs
+			platformSpeed = 90;
+			lowY = 320;
+			highY = 1000;
 			
 		}
+
+		
 
 		//create player
 		player = new Player(game, 100, 390, 'characterSpritesheet', 'Walk1');
@@ -528,6 +562,18 @@ Play.prototype = {
 		player.body.collides([platform/*, collectable*/]/*, refreshJump, this*/);
 		player.body.onBeginContact.add(refreshJump, this);
 
+		//create waterfall platform
+		waterfallPlatform = new WheelPlatform(game, 1050, (lowY+highY)/2, 'wheelPlatform', 600, 900, 180); //game, x, y, image key, lowest y, highest y, speed
+		game.add.existing(waterfallPlatform);
+		waterfallPlatform.enableBody = true;
+		waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
+		waterfallPlatform.body.setCollisionGroup(platform); 
+		waterfallPlatform.body.collides([touchPlatform]);
+		
+		//kill waterfall platform levels 9-10
+		if(this.level >= 9){ //level 9 or 10
+			waterfallPlatform.kill();
+		} 
 
 		//add player animations
 		player.animations.add('moving', [6, 7, 8, 5], 10, true); 
@@ -546,8 +592,7 @@ Play.prototype = {
 		}
 
 
-		lowY = 200;
-		highY = 1200;
+		
 
 		
 		upward = 0;
@@ -572,7 +617,7 @@ Play.prototype = {
 		}
 
 		
-		endArrow = new EndArrow(game, 1160, 110, 'endPetal');
+		endArrow = new EndArrow(game, 1160, 90, 'endPetal');
 		game.add.existing(endArrow);
 		endArrow.enableBody = true;
 		endArrow.physicsBodyType = Phaser.Physics.P2JS;
@@ -593,6 +638,7 @@ Play.prototype = {
 
 	},
 	update: function(){
+		//console.log(upward);
 		var playerVelocity = 200; //CHANGE PLAYER VELOCITY HERE
 		//create keyboard
 		this.cursors = game.input.keyboard.createCursorKeys();
@@ -621,22 +667,21 @@ Play.prototype = {
 		}*/
 		//waterfall platform movement
 
-		var platformSpeed = this.speed; //speed at which platform changes x
 		//var platformSpeed = 180;
 
 		//general movement of platform
-		if(this.upward == 0){
+		if(upward == 0){
 			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
-		}else if(this.upward == 1){
+		}else if(upward == 1){
 			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
 		}
 
 	
 		//swap directions
-		if(waterfallPlatform.y >= this.lowY){ //upper limit
-			this.upward = 1; //go down
-		}else if(waterfallPlatform.y <= this.highY){ //lower limit
-			this.upward = 0; //go up
+		if(waterfallPlatform.y > highY){ //upper limit
+			upward = 0; //go up
+		}else if(waterfallPlatform.y < lowY){ //lower limit
+			upward = 1; //go down
 		}else{
 		}
 

@@ -4,10 +4,11 @@ function EndArrow(game, xPass, yPass, key/*, frame*/){
 	Phaser.Sprite.call(this, game, xPass, yPass, key/*, frame*/); 
 	//add properties
 	this.anchor.set(0.5); //anchor at center
+	this.scale.set(0.5);
 	game.physics.p2.enable(this); //enable physics
 	this.body.clearShapes();
 	//load body
-	this.body.setRectangle(60, 11);
+	this.body.setRectangle(60*0.5, 11*0.5);
 	//this.body.loadPolygon('stageHitbox', 'lowerCliff');
 
 	//this.enableBody = true; //enable body

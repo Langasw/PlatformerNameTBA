@@ -9,7 +9,7 @@ function Player(game, xPass, yPass, key, frame){
 	game.physics.p2.enable(this); //enable physics
 	//this.enableBody = true; //enable body
 	this.body.setRectangle(40*0.8, 133*0.8); //0.8 is scale
-	game.physics.p2.gravity.y = 400; //enable gravity (CHANGE GRAVITY HERE)
+	game.physics.p2.gravity.y = 340; //enable gravity (CHANGE GRAVITY HERE)
 	//this.body.collideWorldBounds = false; // can collide with world bounds
 	this.body.collideWorldBounds = true; // can collide with world bounds
 	this.body.kinematic = false;
