@@ -12,6 +12,7 @@ function Player(game, xPass, yPass, key, frame){
 	game.physics.p2.gravity.y = 340; //enable gravity (CHANGE GRAVITY HERE)
 	//this.body.collideWorldBounds = false; // can collide with world bounds
 	this.body.collideWorldBounds = true; // can collide with world bounds
+	this.body.friction = 150;
 	this.body.kinematic = false;
 	//animations
 	/*this.animations.add('moving', [1], 10, true); //moving sprite is second on tempSpritesheet

@@ -12,6 +12,8 @@ var currentLevel = 1;
 var arena;
 var endArrow;
 var waterfallPlatform;
+var switchPool;
+var waterfall;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
 var cutsceneLength = 50; //minimum time a cutscene can last
@@ -25,9 +27,12 @@ var testTimer = 0;
 var jumpNoise;
 var deathFallNoise;
 var windNoise;
+var playerInPool;
+var waterFrozen = false;
 var playClick = false;
 var creditsClick = false;
 var platformSpeed = 0;
+var downPress = false;
 
 //Main Menu state
 var MainMenu = function(game) {};
@@ -51,6 +56,7 @@ MainMenu.prototype = {
 		game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testRuins', 'assets/img/testRuins.png');
 		game.load.image('testFinal', 'assets/img/testFinal.png');
+		game.load.atlas('waterfallGraphics', 'assets/img/waterfallStates.png', 'js/json/waterfallGraphics.json');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
 		game.load.image('collideTest', 'assets/img/testSprite.png');
 		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
@@ -72,7 +78,7 @@ MainMenu.prototype = {
 		game.load.image('house3', 'assets/img/house3.png');
 		game.load.image('houseFinal', 'assets/img/houseFinal.png');
 		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
-		//game.load.physics('houseHitbox', 'js/json/houseHitbox.json', null);
+		game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
 		game.load.physics('housePhysics', 'js/json/houseHitbox.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
 		game.load.audio('jumpSound', ['assets/audio/jump.wav']);
@@ -232,7 +238,11 @@ Play.prototype = {
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
 		//put in blue background
-		game.stage.backgroundColor = "#4477b2";
+		game.stage.backgroundColor = "#da9986";
+
+		//set up base variables
+		var playerStartY = 390;
+		var arrowStartY = 90;
 
 		//load all sound effects
 		jumpNoise = game.add.audio('jumpSound');
@@ -269,10 +279,11 @@ Play.prototype = {
 		if(this.level > 0 && this.level <= 8){ //between 1-8
 			//put in arena 1 BG
 			game.add.sprite(0,0, 'caveBackground');
+			waterfall = game.add.sprite(1057, 140, 'waterfallGraphics', 'waterfall');
 
 		}else if(this.level == 9){
 			//ruined arena
-			game.add.sprite(0,0, 'caveBackground');
+			game.add.sprite(0, 250, 'caveBackground');
 
 		}else if(this.level == 10){
 			//final arena
@@ -359,7 +370,7 @@ Play.prototype = {
 			bridge3.body.kinematic = true;
 		}
 
-		//set up the proper arenas
+		//ARENAS
 
 		//level 1-8 arena setup
 		if(this.level > 0 && this.level <= 8){ //between 1-8
@@ -379,7 +390,7 @@ Play.prototype = {
 		}else if(this.level == 9){
 			//ruined arena
 
-			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testRuins');
+			arena = new Arena(game, (game.width)/2, (game.height)/2+250, 'testRuins');
 			game.add.existing(arena);
 			arena.enableBody = true;
 			arena.physicsBodyType = Phaser.Physics.P2JS;
@@ -404,7 +415,10 @@ Play.prototype = {
 
 		
 		platformSpeed = 120;
-		//level specific tools
+
+		//LEVEL SPECIFIC TOOLS
+
+
 		if(this.level == 1){ //control window and waterfall y values
 			//control window
 			var controlWindow = game.add.sprite(game.width/2, 300, 'controlWindow');
@@ -550,12 +564,17 @@ Play.prototype = {
 			lowY = 320;
 			highY = 1000;
 			
+		}else if(this.level == 9){
+			playerStartY = playerStartY + 250;
+			arrowStartY = arrowStartY + 250;
+		}else if(this.level == 10){
+			arrowStartY = arrowStartY + 20;
 		}
 
 		
 
 		//create player
-		player = new Player(game, 100, 390, 'characterSpritesheet', 'Walk1');
+		player = new Player(game, 100, playerStartY, 'characterSpritesheet', 'Walk1');
 		game.add.existing(player);
 		player.enableBody = true; 
 		player.body.setCollisionGroup(touchPlatform);
@@ -570,10 +589,28 @@ Play.prototype = {
 		waterfallPlatform.body.setCollisionGroup(platform); 
 		waterfallPlatform.body.collides([touchPlatform]);
 		
+		switchPool = game.add.sprite(705, 1080, 'poolSwitch', 'waterPool');
+		switchPool.enableBody = true;
+		game.physics.p2.enable(switchPool); //enable physics
+		switchPool.physicsBodyType = Phaser.Physics.P2JS;
+		switchPool.body.clearShapes();
+		switchPool.body.setRectangle(101, 30);
+		switchPool.anchor.set(0.5, 1);
+		switchPool.body.kinematic = true;
+		switchPool.body.setCollisionGroup(platform); 
+		playerInPool = switchPool.body.collides([touchPlatform]);
+		switchPool.body.onBeginContact.add(inPool, this);
+		
+
 		//kill waterfall platform levels 9-10
 		if(this.level >= 9){ //level 9 or 10
 			waterfallPlatform.kill();
 		} 
+
+		//switch behavior
+		function inPool(body, bodyB, shapeA, shapeB, equation){
+			console.log('in the pool');
+		}
 
 		//add player animations
 		player.animations.add('moving', [6, 7, 8, 5], 10, true); 
@@ -617,7 +654,7 @@ Play.prototype = {
 		}
 
 		
-		endArrow = new EndArrow(game, 1160, 90, 'endPetal');
+		endArrow = new EndArrow(game, 1160, arrowStartY, 'endPetal');
 		game.add.existing(endArrow);
 		endArrow.enableBody = true;
 		endArrow.physicsBodyType = Phaser.Physics.P2JS;
@@ -625,11 +662,6 @@ Play.prototype = {
 		//end level if player runs into arrow
 		endArrow.body.collides([touchPlatform]/*, toNextLevel, this*/);
 		endArrow.body.onBeginContact.add(toNextLevel, this);
-
-		/*function contactTest(body, bodyB, shapeA, shapeB, equation){
-			game.stage.backgroundColor = "#FACADE";
-		}*/
-
 		
 
 		//endArrow.body.onBeginContact.add(toNextlevel, this);
@@ -670,10 +702,12 @@ Play.prototype = {
 		//var platformSpeed = 180;
 
 		//general movement of platform
-		if(upward == 0){
+		if(waterFrozen == false && upward == 0){
 			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
-		}else if(upward == 1){
+		}else if(waterFrozen == false && upward == 1){
 			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
+		}else if(waterFrozen == true){
+			waterfallPlatform.body.velocity.y = 0;
 		}
 
 	
@@ -739,9 +773,26 @@ Play.prototype = {
 			jumpAnimOnce = 0;
 		}
 		//debug, reset jump animation
-		if(this.cursors.down.isDown){
+		/*if(this.cursors.down.isDown){
 			jumpOnce = 0;
 			jumpAnimOnce = 0;
+		}*/
+
+		if(this.cursors.down.isDown /*&& playerInPool*/){ //if player is in pool when Down is pressed
+			//console.log(downPress);
+			if(waterFrozen == false && downPress == false){
+				waterFrozen = true;
+				waterfall.frame = 1;
+				switchPool.frame = 0;
+				downPress = true;
+			}else if(waterFrozen == true && downPress == false){
+				waterFrozen = false;
+				waterfall.frame = 0;
+				switchPool.frame = 1;
+				downPress = true;
+			}
+		}else{
+			downPress = false;
 		}
 
 		//refresh jump function check
