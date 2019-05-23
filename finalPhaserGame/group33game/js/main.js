@@ -22,10 +22,29 @@ var lowY; //lowest y point of the waterfall platform in the stage
 var highY; //highest y point of the waterfall platform in the stage
 var direction = 1; //1 for left, 0 for right
 var jumpAnimOnce = 0;
-var jumpOnce = 1;
+var jumpOnce = true;
 var testTimer = 0;
 var jumpNoise;
 var deathFallNoise;
+
+///CLOUD FUNCTIONS
+var cloud1;
+var cloud1Speed = 100;
+var cloud2;
+var cloud2Speed = 100;
+var cloudH;
+var cloudHSpeed = 200;
+var cloud1Exist = false;
+var cloud2Exist = false;
+var cloudHExist = false;
+var cloud1Range; //vertical cloud
+var cloud1Start;
+var cloud1Upward = 0;
+var cloud2Range; //vertical cloud 2
+var cloud2Start;
+var cloud2Upward = 0;
+//var cloudHRange; //horizontal cloud
+//var cloudHUpward = 0;
 var windNoise;
 var playerInPool;
 var waterFrozen = false;
@@ -68,6 +87,7 @@ MainMenu.prototype = {
 		game.load.image('Bridge1', 'assets/img/Bridge1.png');
 		game.load.image('Bridge2', 'assets/img/Bridge2.png');
 		game.load.image('Bridge3', 'assets/img/Bridge3.png');
+		game.load.image('Cloud', 'assets/img/betaCloud.png');
 		game.load.image('deathCloudA', 'assets/img/FireLevel3.png');
 		game.load.image('deathCloudB', 'assets/img/FireLevel4A.png');
 		game.load.image('deathCloudC', 'assets/img/FireLevel4B.png');
@@ -78,6 +98,7 @@ MainMenu.prototype = {
 		game.load.image('house3', 'assets/img/house3.png');
 		game.load.image('houseFinal', 'assets/img/houseFinal.png');
 		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
+		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox.json', null);
 		game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
 		game.load.physics('housePhysics', 'js/json/houseHitbox.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
@@ -240,6 +261,10 @@ Play.prototype = {
 		//put in blue background
 		game.stage.backgroundColor = "#da9986";
 
+		//create cloud group
+		/*var cloudVertical = game.add.group();
+		var cloudHorizontal = game.add.group();*/
+
 		//set up base variables
 		var playerStartY = 390;
 		var arrowStartY = 90;
@@ -375,7 +400,7 @@ Play.prototype = {
 		//level 1-8 arena setup
 		if(this.level > 0 && this.level <= 8){ //between 1-8
 			//put in arena
-			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testArena');
+			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testArena', this.level);
 			game.add.existing(arena);
 			arena.enableBody = true;
 			arena.physicsBodyType = Phaser.Physics.P2JS;
@@ -390,7 +415,7 @@ Play.prototype = {
 		}else if(this.level == 9){
 			//ruined arena
 
-			arena = new Arena(game, (game.width)/2, (game.height)/2+250, 'testRuins');
+			arena = new Arena(game, (game.width)/2, (game.height)/2+250, 'testRuins', this.level);
 			game.add.existing(arena);
 			arena.enableBody = true;
 			arena.physicsBodyType = Phaser.Physics.P2JS;
@@ -401,7 +426,7 @@ Play.prototype = {
 		}else if(this.level == 10){
 			//final arena
 
-			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testFinal');
+			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testFinal', this.level);
 			game.add.existing(arena);
 			arena.enableBody = true;
 			arena.physicsBodyType = Phaser.Physics.P2JS;
@@ -420,6 +445,10 @@ Play.prototype = {
 
 
 		if(this.level == 1){ //control window and waterfall y values
+			cloud1Exist = false;
+			cloud2Exist = false;
+			cloudHExist = false;
+
 			//control window
 			var controlWindow = game.add.sprite(game.width/2, 300, 'controlWindow');
 			controlWindow.anchor.set(0.5);
@@ -431,6 +460,24 @@ Play.prototype = {
 			highY = 900;
 
 		}else if(this.level == 2){//house 1, a updown cloud, and waterfall y values
+			cloud1Exist = true;
+			cloud2Exist = false;
+			cloudHExist = false;
+
+			//create cloud platform
+			cloud1Start = 445;
+			cloud1Range = 180;
+
+			cloud1 = game.add.sprite(800, cloud1Start, 'Cloud');
+			cloud1.enableBody = true;
+			game.physics.p2.enable(cloud1);
+			cloud1.physicsBodyType = Phaser.Physics.P2JS;
+			cloud1.body.clearShapes();
+			cloud1.body.setRectangle(140, 3);
+			cloud1.anchor.set(0.5);
+			cloud1.body.setCollisionGroup(platform);
+			cloud1.body.collides([touchPlatform]);
+			cloud1.body.kinematic = true;
 
 			//set waterfall platform prefabs
 			platformSpeed = 112;
@@ -438,6 +485,37 @@ Play.prototype = {
 			highY = 460;
 
 		}else if(this.level == 3){//house 2, updown cloud, horizontal cloud, two death clouds, and waterfall y values
+			cloud1Exist = true;
+			cloud2Exist = false;
+			cloudHExist = true;
+
+			//create cloud platform
+			cloud1Start = 420;
+			cloud1Range = 220;
+
+			cloud1 = game.add.sprite(430, cloud1Start, 'Cloud');
+			cloud1.enableBody = true;
+			game.physics.p2.enable(cloud1);
+			cloud1.physicsBodyType = Phaser.Physics.P2JS;
+			cloud1.body.clearShapes();
+			cloud1.body.setRectangle(140, 3);
+			cloud1.anchor.set(0.5);
+			cloud1.body.setCollisionGroup(platform);
+			cloud1.body.collides([touchPlatform]);
+			cloud1.body.kinematic = true;
+
+			cloudH = game.add.sprite(30, 180, 'Cloud');
+			cloudH.enableBody = true;
+			game.physics.p2.enable(cloudH);
+			cloudH.physicsBodyType = Phaser.Physics.P2JS;
+			cloudH.body.clearShapes();
+			cloudH.body.setRectangle(140, 3);
+			cloudH.anchor.set(0.5);
+			cloudH.body.setCollisionGroup(platform);
+			cloudH.body.collides([touchPlatform]);
+			cloudH.body.kinematic = true;
+			cloudH.body.velocity.x = 170;
+
 			var deathCloud1 = game.add.sprite(775, 580, 'deathCloudA');
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
@@ -466,6 +544,41 @@ Play.prototype = {
 			highY = 1000;
 
 		}else if(this.level == 4){//house 3, two vertical clouds, two death clouds, and waterfall y values
+			cloud1Exist = true;
+			cloud2Exist = true;
+			cloudHExist = false;
+
+			//create cloud platform 1
+			cloud1Start = 340;
+			cloud1Range = 150;
+
+			cloud1 = game.add.sprite(930, cloud1Start, 'Cloud');
+			cloud1.enableBody = true;
+			game.physics.p2.enable(cloud1);
+			cloud1.physicsBodyType = Phaser.Physics.P2JS;
+			cloud1.body.clearShapes();
+			cloud1.body.setRectangle(140, 3);
+			cloud1.anchor.set(0.5);
+			cloud1.body.setCollisionGroup(platform);
+			cloud1.body.collides([touchPlatform]);
+			cloud1.body.kinematic = true;
+
+			//create cloud platform 2
+			cloud2Start = 820;
+			cloud2Range = 200;
+
+			cloud2 = game.add.sprite(260, cloud2Start, 'Cloud');
+			cloud2.enableBody = true;
+			game.physics.p2.enable(cloud2);
+			cloud2.physicsBodyType = Phaser.Physics.P2JS;
+			cloud2.body.clearShapes();
+			cloud2.body.setRectangle(140, 3);
+			cloud2.anchor.set(0.5);
+			cloud2.body.setCollisionGroup(platform);
+			cloud2.body.collides([touchPlatform]);
+			cloud2.body.kinematic = true;
+
+
 			var deathCloud1 = game.add.sprite(1030, 705, 'deathCloudB');
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
@@ -489,19 +602,57 @@ Play.prototype = {
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
 
 			//set waterfall platform prefabs
-			platformSpeed = 150;
+			platformSpeed = 210;
 			lowY = 520;
-			highY = 800;
+			highY = 920;
 
 		}else if(this.level == 5){//main house, horizontal cloud, and waterfall y values
-
-			//set waterfall platform prefabs
-			platformSpeed = 50;
+			cloud1Exist = false;
+			cloud2Exist = false;
+			cloudHExist = true;
+			
+			//true values (REIMPLEMENT THESE AFTER DOOR IS ADDED)
 			lowY = 1020;
 			highY = 1200;
+			platformSpeed = 50;
+
+			//test values (REMOVE THESE AFTER DOOR IS IMPLEMENTED)
+			lowY = 320;
+			highY = 800;
+			platformSpeed = 160;
+
+			cloudH = game.add.sprite(500, 160, 'Cloud');
+			cloudH.enableBody = true;
+			game.physics.p2.enable(cloudH);
+			cloudH.physicsBodyType = Phaser.Physics.P2JS;
+			cloudH.body.clearShapes();
+			cloudH.body.setRectangle(140, 3);
+			cloudH.anchor.set(0.5);
+			cloudH.body.setCollisionGroup(platform);
+			cloudH.body.collides([touchPlatform]);
+			cloudH.body.kinematic = true;
+			cloudH.body.velocity.x = 150;
 
 
 		}else if(this.level == 6){//main house, horizontal cloud, smoke, and waterfall y values
+			cloud1Exist = true;
+			cloud2Exist = false;
+			cloudHExist = false;
+
+			//create cloud platform
+			cloud1Start = 280;
+			cloud1Range = 160;
+
+			cloud1 = game.add.sprite(810, cloud1Start, 'Cloud');
+			cloud1.enableBody = true;
+			game.physics.p2.enable(cloud1);
+			cloud1.physicsBodyType = Phaser.Physics.P2JS;
+			cloud1.body.clearShapes();
+			cloud1.body.setRectangle(140, 3);
+			cloud1.anchor.set(0.5);
+			cloud1.body.setCollisionGroup(platform);
+			cloud1.body.collides([touchPlatform]);
+			cloud1.body.kinematic = true;
 
 			var deathCloud2 = game.add.sprite(380, 460, 'deathCloudC');
 			deathCloud2.enableBody = true;
@@ -520,6 +671,40 @@ Play.prototype = {
 			highY = 1200;
 
 		}else if(this.level == 7){//main house, two verical clouds, smoke, and waterfall y values
+			cloud1Exist = true;
+			cloud2Exist = true;
+			cloudHExist = false;
+
+			//create cloud platform 1
+			cloud1Start = 340;
+			cloud1Range = 150;
+
+			cloud1 = game.add.sprite(930, cloud1Start, 'Cloud');
+			cloud1.enableBody = true;
+			game.physics.p2.enable(cloud1);
+			cloud1.physicsBodyType = Phaser.Physics.P2JS;
+			cloud1.body.clearShapes();
+			cloud1.body.setRectangle(140, 3);
+			cloud1.anchor.set(0.5);
+			cloud1.body.setCollisionGroup(platform);
+			cloud1.body.collides([touchPlatform]);
+			cloud1.body.kinematic = true;
+
+			//create cloud platform 2
+			cloud2Start = 820;
+			cloud2Range = 280;
+
+			cloud2 = game.add.sprite(260, cloud2Start, 'Cloud');
+			cloud2.enableBody = true;
+			game.physics.p2.enable(cloud2);
+			cloud2.physicsBodyType = Phaser.Physics.P2JS;
+			cloud2.body.clearShapes();
+			cloud2.body.setRectangle(140, 3);
+			cloud2.anchor.set(0.5);
+			cloud2.body.setCollisionGroup(platform);
+			cloud2.body.collides([touchPlatform]);
+			cloud2.body.kinematic = true;
+
 			var deathCloud1 = game.add.sprite(1020, 705, 'deathCloudB');
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
@@ -543,17 +728,37 @@ Play.prototype = {
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
 
 			//set waterfall platform prefabs
-			platformSpeed = 140;
-			lowY = 520;
+			platformSpeed = 390;
+			lowY = 625;
 			highY = 1200;
 
 		}else if(this.level == 8){//burning house, horizontal cloud, smoke, and waterfall y values
-			var deathCloud1 = game.add.sprite(1043, 705, 'deathCloudD');
+			cloud1Exist = true;
+			cloud2Exist = false;
+			cloudHExist = false;
+
+			//create cloud platform 1
+			cloud1Start = 700;
+			cloud1Range = 170;
+			cloud1Speed = 150;
+
+			cloud1 = game.add.sprite(930, cloud1Start, 'Cloud');
+			cloud1.enableBody = true;
+			game.physics.p2.enable(cloud1);
+			cloud1.physicsBodyType = Phaser.Physics.P2JS;
+			cloud1.body.clearShapes();
+			cloud1.body.setRectangle(140, 3);
+			cloud1.anchor.set(0.5);
+			cloud1.body.setCollisionGroup(platform);
+			cloud1.body.collides([touchPlatform]);
+			cloud1.body.kinematic = true;
+
+			var deathCloud1 = game.add.sprite(1043, 625, 'deathCloudD');
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
 			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
 			deathCloud1.body.clearShapes();
-			deathCloud1.body.setRectangle(160, 40);
+			deathCloud1.body.setRectangle(140, 40);
 			deathCloud1.body.setCollisionGroup(platform);
 			deathCloud1.body.collides([touchPlatform]);
 			deathCloud1.body.kinematic = true;
@@ -562,12 +767,18 @@ Play.prototype = {
 			//set waterfall platform prefabs
 			platformSpeed = 90;
 			lowY = 320;
-			highY = 1000;
+			highY = 1150;
 			
 		}else if(this.level == 9){
+			cloud1Exist = false;
+			cloud2Exist = false;
+			cloudHExist = false;
 			playerStartY = playerStartY + 250;
 			arrowStartY = arrowStartY + 250;
 		}else if(this.level == 10){
+			cloud1Exist = false;
+			cloud2Exist = false;
+			cloudHExist = false;
 			arrowStartY = arrowStartY + 20;
 		}
 
@@ -600,7 +811,8 @@ Play.prototype = {
 		switchPool.body.setCollisionGroup(platform); 
 		playerInPool = switchPool.body.collides([touchPlatform]);
 		switchPool.body.onBeginContact.add(inPool, this);
-		
+
+		waterFrozen = false;
 
 		//kill waterfall platform levels 9-10
 		if(this.level >= 9){ //level 9 or 10
@@ -617,25 +829,22 @@ Play.prototype = {
 		player.animations.add('still', [5], 10, true); 
 		player.animations.add('jumping', [1, 1, 2, 3, 3, 3, 3, 3, 0], 12, false); //
 		//player.animations.add('falling', [0], 10, true); //moving sprite is third on tempSpritesheet
-		player.animations.add('landing', [4, 4, 4], 10, true) //
+		player.animations.add('landing', [4, 4, 4], 10, true); //
 		player.scale.set(0.8);
 
 		//player.body.collideWorldBounds = true;
 		function refreshJump(body, bodyB, shapeA, shapeB, equation){
 			//if player collides with platform, do this
 			//this is where landing animation should go, for only a few frames
-			jumpOnce = 0;
+			jumpOnce = true;
 			//player.animations.play('landing');
 		}
 
 
-		
-
-		
 		upward = 0;
 
 		testTimer = 0;
-		jumpOnce = 1;
+		jumpOnce = true;
 		jumpAnimOnce = 0;
 		direction = 0;
 
@@ -670,7 +879,7 @@ Play.prototype = {
 
 	},
 	update: function(){
-		//console.log(upward);
+		//console.log(jumpOnce);
 		var playerVelocity = 200; //CHANGE PLAYER VELOCITY HERE
 		//create keyboard
 		this.cursors = game.input.keyboard.createCursorKeys();
@@ -689,17 +898,6 @@ Play.prototype = {
 			}
 		}
 
-		
-		/*testTimer++;
-		if(testTimer == 300){
-			upward = 1;
-		}else if(testTimer == 600){
-			upward = 0;
-			testTimer = 0;
-		}*/
-		//waterfall platform movement
-
-		//var platformSpeed = 180;
 
 		//general movement of platform
 		if(waterFrozen == false && upward == 0){
@@ -710,6 +908,19 @@ Play.prototype = {
 			waterfallPlatform.body.velocity.y = 0;
 		}
 
+		//general movement of cloud 1
+		if(cloud1Exist && cloud1Upward == 0){
+			cloud1.body.velocity.y = -1 * cloud1Speed; //go upward
+		}else if(cloud1Exist && cloud1Upward == 1){
+			cloud1.body.velocity.y = cloud1Speed; //go downward
+		}
+
+		//general movement of cloud 2
+		if(cloud2Exist && cloud2Upward == 0){
+			cloud2.body.velocity.y = -1 * cloud2Speed; //go upward
+		}else if(cloud2Exist && cloud2Upward == 1){
+			cloud2.body.velocity.y = cloud2Speed; //go downward
+		}
 	
 		//swap directions
 		if(waterfallPlatform.y > highY){ //upper limit
@@ -719,16 +930,36 @@ Play.prototype = {
 		}else{
 		}
 
-		
+		//swap directions
+		if(cloud1Exist && cloud1.body.y > cloud1Start + cloud1Range){ //upper limit
+			cloud1Upward = 0; //go up
+		}else if(cloud1Exist && cloud1.body.y < cloud1Start - cloud1Range){ //lower limit
+			cloud1Upward = 1; //go down
+		}else{
+		}
+
+		//swap directions
+		if(cloud2Exist && cloud2.body.y > cloud2Start + cloud2Range){ //upper limit
+			cloud2Upward = 0; //go up
+		}else if(cloud2Exist && cloud2.body.y < cloud2Start - cloud2Range){ //lower limit
+			cloud2Upward = 1; //go down
+		}else{
+		}
+
+		//cloud H wrap
+		if(cloudHExist && cloudH.body.x > game.width + 100){
+			cloudH.body.x = -100;
+		}
+
 
 		//jumping movement
 		if(this.cursors.up.isDown){
-			if(jumpOnce == 0){
+			if(jumpOnce == true){
 				player.body.velocity.y = -250; //jump
 				//player.animations.play('jumping');
 				jumpNoise.play(); //play jump sound
 			}
-			jumpOnce = 1;
+			jumpOnce = false;
 		}else{
 			//jumpOnce = 0;
 		}

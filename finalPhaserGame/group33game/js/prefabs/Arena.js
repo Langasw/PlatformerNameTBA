@@ -1,6 +1,6 @@
 //prefab for Arena
 
-function Arena(game, xPass, yPass, key/*, frame*/){
+function Arena(game, xPass, yPass, key, level/*, frame*/){
 	//call to Phaser.Sprite
 	//create new sprite 
 	Phaser.Sprite.call(this, game, xPass, yPass, key/*, frame*/); 
@@ -9,12 +9,18 @@ function Arena(game, xPass, yPass, key/*, frame*/){
 	game.physics.p2.enable(this); //enable physics
 	this.body.clearShapes();
 	//load body
-	this.body.loadPolygon('stageHitboxWide', 'lowerCliff');
-	this.body.loadPolygon('stageHitboxWide', 'housePlatform');
-	this.body.loadPolygon('stageHitboxWide', 'caveLeft');
-	this.body.loadPolygon('stageHitboxWide', 'caveRight');
-	this.body.loadPolygon('stageHitboxWide', 'waterFall');
-	this.body.loadPolygon('stageHitboxWide', 'garden');
+	if(level <= 8){
+		this.body.loadPolygon('stageHitboxWide', 'lowerCliff');
+		this.body.loadPolygon('stageHitboxWide', 'housePlatform');
+		this.body.loadPolygon('stageHitboxWide', 'caveLeft');
+		this.body.loadPolygon('stageHitboxWide', 'caveRight');
+		this.body.loadPolygon('stageHitboxWide', 'waterFall');
+		this.body.loadPolygon('stageHitboxWide', 'garden');
+	}else if(level == 9){
+		this.body.loadPolygon('ruinsHitbox', 'garden');
+		this.body.loadPolygon('ruinsHitbox', 'testRuins');
+	}
+	
 
 	//this.enableBody = true; //enable body
 	//this.body.setRectangle(50, 84);
