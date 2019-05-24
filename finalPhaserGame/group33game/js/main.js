@@ -8,12 +8,14 @@ var game = new Phaser.Game(1200, 1320, Phaser.AUTO);
 var player;
 //var platform; //group for platformable objects (bridges, clouds, background)
 //var touchPlatform; //group for objects that have collission with objects (player)
-var currentLevel = 1;
+var currentLevel = 5;
 var arena;
 var endArrow;
 var waterfallPlatform;
 var switchPool;
 var waterfall;
+var doormat;
+var playerInHouse = false;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
 var cutsceneLength = 50; //minimum time a cutscene can last
@@ -26,6 +28,8 @@ var jumpOnce = true;
 var testTimer = 0;
 var jumpNoise;
 var deathFallNoise;
+var freezeSound;
+var thawSound;
 
 ///CLOUD FUNCTIONS
 var cloud1;
@@ -46,12 +50,40 @@ var cloud2Upward = 0;
 //var cloudHRange; //horizontal cloud
 //var cloudHUpward = 0;
 var windNoise;
-var playerInPool;
+var playerInPool = false;
 var waterFrozen = false;
 var playClick = false;
 var creditsClick = false;
 var platformSpeed = 0;
 var downPress = false;
+
+
+///game's script
+
+var BufferText1 = 'Level 1 Placeholder Text\n';
+
+var BufferText2 = 'Level 2 Placeholder Text\n';
+
+var BufferText3 = 'Level 3 Placeholder Text\n';
+
+var BufferText4 = 'Level 4 Placeholder Text\n';
+
+var BufferText5 = 'Level 5 Placeholder Text\n';
+
+var BufferText6 = 'Level 6 Placeholder Text\n';
+
+var BufferText7 = 'Level 7 Placeholder Text\n';
+
+var BufferText8 = 'Level 8 Placeholder Text\n';
+
+var BufferText9 = 'Level 9 Placeholder Text\n';
+
+var BufferText10 = 'Level 10 Placeholder Text\n';
+
+var BufferTextEnd = 'Ending Placeholder Text\n';
+
+var BufferTextAlt = 'Alt End Placeholder Text\n';
+
 
 //Main Menu state
 var MainMenu = function(game) {};
@@ -97,13 +129,18 @@ MainMenu.prototype = {
 		game.load.image('house2', 'assets/img/house2.png');
 		game.load.image('house3', 'assets/img/house3.png');
 		game.load.image('houseFinal', 'assets/img/houseFinal.png');
+		game.load.image('doormat', 'assets/img/doormat.png');
 		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
 		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox.json', null);
 		game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
 		game.load.physics('housePhysics', 'js/json/houseHitbox.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
+
+		//------
 		game.load.audio('jumpSound', ['assets/audio/jump.wav']);
 		game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
+		game.load.audio('freezeSound', ['assets/audio/freezeSound.wav']);
+		game.load.audio('thawSound', ['assets/audio/thawSound.wav']);
 		game.load.audio('windNoise', ['assets/audio/windNoise.mp3']);
 	},
 	create: function() {
@@ -182,8 +219,8 @@ Cutscene.prototype = {
 	create: function(){
 		console.log('Cutscene: create');
 
-		windNoise = game.add.audio('windNoise');
-		windNoise.volume = 0.2;
+		windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
+		windNoise.volume = 0.1;
 		windNoise.play();
 
 		cutsceneTime = 0;
@@ -195,29 +232,29 @@ Cutscene.prototype = {
 		game.stage.backgroundColor = "#FACADE";
 		//take cutscene text
 		if(this.level == 1){
-			CutsceneText.text = 'Level 1 Placeholder Text\n';
+			CutsceneText.text = BufferText1;
 		}else if(this.level == 2){
-			CutsceneText.text = 'Level 2 Placeholder Text\n';
+			CutsceneText.text = BufferText2;
 		}else if(this.level == 3){
-			CutsceneText.text = 'Level 3 Placeholder Text\n';
+			CutsceneText.text = BufferText3;
 		}else if(this.level == 4){
-			CutsceneText.text = 'Level 4 Placeholder Text\n';
+			CutsceneText.text = BufferText4;
 		}else if(this.level == 5){
-			CutsceneText.text = 'Level 5 Placeholder Text\n';
+			CutsceneText.text = BufferText5;
 		}else if(this.level == 6){
-			CutsceneText.text = 'Level 6 Placeholder Text\n';
+			CutsceneText.text = BufferText6;
 		}else if(this.level == 7){
-			CutsceneText.text = 'Level 7 Placeholder Text\n';
+			CutsceneText.text = BufferText7;
 		}else if(this.level == 8){
-			CutsceneText.text = 'Level 8 Placeholder Text\n';
+			CutsceneText.text = BufferText8;
 		}else if(this.level == 9){
-			CutsceneText.text = 'Level 9 Placeholder Text\n';
+			CutsceneText.text = BufferText9;
 		}else if(this.level == 10){
-			CutsceneText.text = 'Level 10 Placeholder Text\n';
+			CutsceneText.text = BufferText10;
 		}else if(this.level == 11){
-			CutsceneText.text = 'Ending Placeholder Text\n';
+			CutsceneText.text = BufferTextEnd;
 		}else if(this.level == 12){
-			CutsceneText.text = 'Alternate Ending Placeholder Text\n';
+			CutsceneText.text = BufferTextAlt;
 		}
 	},
 	update: function(){
@@ -259,6 +296,7 @@ Play.prototype = {
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
 		//put in blue background
+		game.physics.p2.setImpactEvents(true);
 		game.stage.backgroundColor = "#da9986";
 
 		//create cloud group
@@ -273,12 +311,15 @@ Play.prototype = {
 		jumpNoise = game.add.audio('jumpSound');
 		jumpNoise.volume = 0.5;
 		deathFallNoise = game.add.audio('deathFall');
+		freezeSound = game.add.audio('freezeSound');
+		freezeSound.volume = 0.5;
+		thawSound = game.add.audio('thawSound');
+		thawSound.volume = 0.5;
 
 		//set up collision groups
 		var platform = game.physics.p2.createCollisionGroup();
 		var touchPlatform = game.physics.p2.createCollisionGroup();
-		var collectable = game.physics.p2.createCollisionGroup();
-		var deathTouch = game.physics.p2.createCollisionGroup();
+		
 		game.physics.p2.enable(platform); //enable physics for walls
 
 		//put in secret walls (bounds for left and right sides_)
@@ -384,7 +425,7 @@ Play.prototype = {
 			bridge2.body.addRectangle(20, 87, 30, 0); // |, x offset is 30
 
 			bridge3.body.clearShapes();
-			bridge3.body.setRectangle(150, 25);
+			bridge3.body.setRectangle(170, 25);
 
 			bridge2.body.setCollisionGroup(platform);
 			bridge2.body.collides([touchPlatform]);
@@ -473,7 +514,7 @@ Play.prototype = {
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
 			cloud1.body.clearShapes();
-			cloud1.body.setRectangle(140, 3);
+			cloud1.body.setRectangle(140, 40);
 			cloud1.anchor.set(0.5);
 			cloud1.body.setCollisionGroup(platform);
 			cloud1.body.collides([touchPlatform]);
@@ -498,7 +539,7 @@ Play.prototype = {
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
 			cloud1.body.clearShapes();
-			cloud1.body.setRectangle(140, 3);
+			cloud1.body.setRectangle(140, 40);
 			cloud1.anchor.set(0.5);
 			cloud1.body.setCollisionGroup(platform);
 			cloud1.body.collides([touchPlatform]);
@@ -509,7 +550,7 @@ Play.prototype = {
 			game.physics.p2.enable(cloudH);
 			cloudH.physicsBodyType = Phaser.Physics.P2JS;
 			cloudH.body.clearShapes();
-			cloudH.body.setRectangle(140, 3);
+			cloudH.body.setRectangle(140, 40);
 			cloudH.anchor.set(0.5);
 			cloudH.body.setCollisionGroup(platform);
 			cloudH.body.collides([touchPlatform]);
@@ -549,15 +590,15 @@ Play.prototype = {
 			cloudHExist = false;
 
 			//create cloud platform 1
-			cloud1Start = 340;
-			cloud1Range = 150;
+			cloud1Start = 320;
+			cloud1Range = 190;
 
 			cloud1 = game.add.sprite(930, cloud1Start, 'Cloud');
 			cloud1.enableBody = true;
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
 			cloud1.body.clearShapes();
-			cloud1.body.setRectangle(140, 3);
+			cloud1.body.setRectangle(140, 40);
 			cloud1.anchor.set(0.5);
 			cloud1.body.setCollisionGroup(platform);
 			cloud1.body.collides([touchPlatform]);
@@ -572,7 +613,7 @@ Play.prototype = {
 			game.physics.p2.enable(cloud2);
 			cloud2.physicsBodyType = Phaser.Physics.P2JS;
 			cloud2.body.clearShapes();
-			cloud2.body.setRectangle(140, 3);
+			cloud2.body.setRectangle(140, 40);
 			cloud2.anchor.set(0.5);
 			cloud2.body.setCollisionGroup(platform);
 			cloud2.body.collides([touchPlatform]);
@@ -616,17 +657,12 @@ Play.prototype = {
 			highY = 1200;
 			platformSpeed = 50;
 
-			//test values (REMOVE THESE AFTER DOOR IS IMPLEMENTED)
-			lowY = 320;
-			highY = 800;
-			platformSpeed = 160;
-
 			cloudH = game.add.sprite(500, 160, 'Cloud');
 			cloudH.enableBody = true;
 			game.physics.p2.enable(cloudH);
 			cloudH.physicsBodyType = Phaser.Physics.P2JS;
 			cloudH.body.clearShapes();
-			cloudH.body.setRectangle(140, 3);
+			cloudH.body.setRectangle(140, 40);
 			cloudH.anchor.set(0.5);
 			cloudH.body.setCollisionGroup(platform);
 			cloudH.body.collides([touchPlatform]);
@@ -648,7 +684,7 @@ Play.prototype = {
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
 			cloud1.body.clearShapes();
-			cloud1.body.setRectangle(140, 3);
+			cloud1.body.setRectangle(140, 40);
 			cloud1.anchor.set(0.5);
 			cloud1.body.setCollisionGroup(platform);
 			cloud1.body.collides([touchPlatform]);
@@ -699,7 +735,7 @@ Play.prototype = {
 			game.physics.p2.enable(cloud2);
 			cloud2.physicsBodyType = Phaser.Physics.P2JS;
 			cloud2.body.clearShapes();
-			cloud2.body.setRectangle(140, 3);
+			cloud2.body.setRectangle(140, 40);
 			cloud2.anchor.set(0.5);
 			cloud2.body.setCollisionGroup(platform);
 			cloud2.body.collides([touchPlatform]);
@@ -716,7 +752,7 @@ Play.prototype = {
 			deathCloud1.body.kinematic = true;
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
-			var deathCloud2 = game.add.sprite(570, 150, 'deathCloudB'); //change this later to be on top of the chimney
+			var deathCloud2 = game.add.sprite(565, 110, 'deathCloudB'); //change this later to be on top of the chimney
 			deathCloud2.enableBody = true;
 			game.physics.p2.enable(deathCloud2);
 			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -740,14 +776,14 @@ Play.prototype = {
 			//create cloud platform 1
 			cloud1Start = 700;
 			cloud1Range = 170;
-			cloud1Speed = 150;
+			cloud1Speed = 130;
 
 			cloud1 = game.add.sprite(930, cloud1Start, 'Cloud');
 			cloud1.enableBody = true;
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
 			cloud1.body.clearShapes();
-			cloud1.body.setRectangle(140, 3);
+			cloud1.body.setRectangle(140, 40);
 			cloud1.anchor.set(0.5);
 			cloud1.body.setCollisionGroup(platform);
 			cloud1.body.collides([touchPlatform]);
@@ -765,7 +801,7 @@ Play.prototype = {
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
 			//set waterfall platform prefabs
-			platformSpeed = 90;
+			platformSpeed = 140;
 			lowY = 320;
 			highY = 1150;
 			
@@ -789,8 +825,9 @@ Play.prototype = {
 		game.add.existing(player);
 		player.enableBody = true; 
 		player.body.setCollisionGroup(touchPlatform);
-		player.body.collides([platform/*, collectable*/]/*, refreshJump, this*/);
+		player.body.collides([platform/*, collectable*/], /*refreshJump, this*/);
 		player.body.onBeginContact.add(refreshJump, this);
+		player.body.onEndContact.add(deleteJump, this);
 
 		//create waterfall platform
 		waterfallPlatform = new WheelPlatform(game, 1050, (lowY+highY)/2, 'wheelPlatform', 600, 900, 180); //game, x, y, image key, lowest y, highest y, speed
@@ -805,23 +842,58 @@ Play.prototype = {
 		game.physics.p2.enable(switchPool); //enable physics
 		switchPool.physicsBodyType = Phaser.Physics.P2JS;
 		switchPool.body.clearShapes();
-		switchPool.body.setRectangle(101, 30);
+		switchPool.body.setRectangle(80, 30);
 		switchPool.anchor.set(0.5, 1);
 		switchPool.body.kinematic = true;
 		switchPool.body.setCollisionGroup(platform); 
-		playerInPool = switchPool.body.collides([touchPlatform]);
+		switchPool.body.collides([touchPlatform],/* inPool, this*/);
 		switchPool.body.onBeginContact.add(inPool, this);
+		switchPool.body.onEndContact.add(outPool, this);
 
 		waterFrozen = false;
+
+		doormat = game.add.sprite(602, 695, 'doormat');
+		doormat.enableBody = true;
+		game.physics.p2.enable(doormat);
+		doormat.physicsBodyType = Phaser.Physics.P2JS;
+		doormat.body.clearShapes();
+		doormat.body.setRectangle(60*1.3, 7*1.3);
+		doormat.anchor.set(0.5, 0.5);
+		doormat.scale.set(1.3);
+		doormat.body.kinematic = true;
+		doormat.body.setCollisionGroup(platform); 
+		doormat.body.collides([touchPlatform],/* inPool, this*/);
+		doormat.body.onBeginContact.add(inDoor, this);
+		doormat.body.onEndContact.add(outDoor, this);
+
 
 		//kill waterfall platform levels 9-10
 		if(this.level >= 9){ //level 9 or 10
 			waterfallPlatform.kill();
-		} 
+			switchPool.kill();
+			doormat.kill();
+		}
+		if(this.level <= 4){
+			doormat.kill();
+		}
 
+		//negative priority playerInPool false
 		//switch behavior
-		function inPool(body, bodyB, shapeA, shapeB, equation){
-			console.log('in the pool');
+		function inPool(body, bodyB/*, shapeA, shapeB, equation*/){
+			//console.log('in the pool');
+			playerInPool = true;
+		}
+		function outPool(body, bodyB/*, shapeA, shapeB, equation*/){
+			//console.log('in the pool');
+			playerInPool = false;
+		}
+		function inDoor(body, bodyB/*, shapeA, shapeB, equation*/){
+			//console.log('in the pool');
+			playerInHouse = true;
+		}
+		function outDoor(body, bodyB/*, shapeA, shapeB, equation*/){
+			//console.log('in the pool');
+			playerInHouse = false;
 		}
 
 		//add player animations
@@ -833,10 +905,19 @@ Play.prototype = {
 		player.scale.set(0.8);
 
 		//player.body.collideWorldBounds = true;
-		function refreshJump(body, bodyB, shapeA, shapeB, equation){
+		function refreshJump(body, bodyB/*, shapeA, shapeB, equation*/){
 			//if player collides with platform, do this
 			//this is where landing animation should go, for only a few frames
+			//console.log('refreshing');
 			jumpOnce = true;
+			//player.animations.play('landing');
+		}
+
+		function deleteJump(body, bodyB/*, shapeA, shapeB, equation*/){
+			//if player collides with platform, do this
+			//this is where landing animation should go, for only a few frames
+			//console.log('refreshing');
+			jumpOnce = false;
 			//player.animations.play('landing');
 		}
 
@@ -879,7 +960,7 @@ Play.prototype = {
 
 	},
 	update: function(){
-		//console.log(jumpOnce);
+		//console.log(playerInPool);
 		var playerVelocity = 200; //CHANGE PLAYER VELOCITY HERE
 		//create keyboard
 		this.cursors = game.input.keyboard.createCursorKeys();
@@ -955,11 +1036,11 @@ Play.prototype = {
 		//jumping movement
 		if(this.cursors.up.isDown){
 			if(jumpOnce == true){
-				player.body.velocity.y = -250; //jump
+				player.body.velocity.y = -320; //jump
 				//player.animations.play('jumping');
 				jumpNoise.play(); //play jump sound
 			}
-			jumpOnce = false;
+			//jumpOnce = false;
 		}else{
 			//jumpOnce = 0;
 		}
@@ -990,10 +1071,11 @@ Play.prototype = {
 
 		//animation control
 		if(this.cursors.up.isPressed){ //upward movement
-			if(jumpAnimOnce == 0){
+			player.animations.play('jumping');
+			/*if(jumpAnimOnce == 0){
 				player.animations.play('jumping');
 			}
-			jumpAnimOnce = 1;
+			jumpAnimOnce = 1;*/
 		}else {
 			//horizontal movement
 			if(this.cursors.left.isDown || this.cursors.right.isDown){
@@ -1008,22 +1090,36 @@ Play.prototype = {
 			jumpOnce = 0;
 			jumpAnimOnce = 0;
 		}*/
-
-		if(this.cursors.down.isDown /*&& playerInPool*/){ //if player is in pool when Down is pressed
+		
+		if(this.cursors.down.isDown && playerInPool){ //if player is in pool when Down is pressed
 			//console.log(downPress);
 			if(waterFrozen == false && downPress == false){
 				waterFrozen = true;
 				waterfall.frame = 1;
 				switchPool.frame = 0;
+				freezeSound.play();
 				downPress = true;
 			}else if(waterFrozen == true && downPress == false){
 				waterFrozen = false;
 				waterfall.frame = 0;
 				switchPool.frame = 1;
+				thawSound.play();
 				downPress = true;
 			}
 		}else{
 			downPress = false;
+		}
+
+		if(this.cursors.down.isDown && playerInHouse){ //if player is in house when Down is pressed
+			//console.log(downPress);
+			//if(downPress == false){
+				player.body.velocity.y = -250;
+				player.body.x = 570;
+				player.body.y = 150;
+				//downPress = true;
+			//}
+		}else{
+			//downPress = false;
 		}
 
 		//refresh jump function check

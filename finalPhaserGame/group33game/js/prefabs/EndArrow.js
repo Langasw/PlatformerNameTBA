@@ -8,7 +8,7 @@ function EndArrow(game, xPass, yPass, key/*, frame*/){
 	game.physics.p2.enable(this); //enable physics
 	this.body.clearShapes();
 	//load body
-	this.body.setRectangle(60*0.5, 11*0.5);
+	this.body.setRectangle(112*0.5, 72*0.5);
 	//this.body.loadPolygon('stageHitbox', 'lowerCliff');
 
 	//this.enableBody = true; //enable body
