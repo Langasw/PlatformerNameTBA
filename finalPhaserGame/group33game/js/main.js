@@ -15,6 +15,7 @@ var waterfallPlatform;
 var switchPool;
 var waterfall;
 var doormat;
+var fadeEffect;
 var playerInHouse = false;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
@@ -31,6 +32,12 @@ var deathFallNoise;
 var freezeSound;
 var chimneyNoise;
 var thawSound;
+var winSound;
+var deathX;
+var deathY;
+var hasDied = false;
+var winAnim = false;
+var winAnimTimer = 0;
 
 ///CLOUD FUNCTIONS
 var cloud1;
@@ -114,7 +121,11 @@ MainMenu.prototype = {
 		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
 		game.load.image('betaArrow', 'assets/img/betaArrow.png');
 		game.load.image('endPetal', 'assets/img/endPetal.png');
+		game.load.image('endParticle', 'assets/img/endParticle.png');
+		game.load.image('smokeCloud', 'assets/img/chimneySmoke.png');
+		game.load.image('deathPetal', 'assets/img/deathPetal.png');
 		game.load.image('controlWindow', 'assets/img/controlWindow.png');
+		game.load.image('FadeEffect', 'assets/img/FadeEffect.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
 		game.load.image('caveBackground', 'assets/img/betaCaveBGWide.png');
 		game.load.image('Bridge1', 'assets/img/Bridge1.png');
@@ -143,8 +154,10 @@ MainMenu.prototype = {
 		game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
 		game.load.audio('freezeSound', ['assets/audio/freezeSound.wav']);
 		game.load.audio('thawSound', ['assets/audio/thawSound.wav']);
+		game.load.audio('winSound', ['assets/audio/winLevel.wav']);
 		game.load.audio('chimneyNoise', ['assets/audio/chimneyNoise.wav']);
 		game.load.audio('windNoise', ['assets/audio/windNoise.mp3']);
+
 	},
 	create: function() {
 		console.log('MainMenu: create');
@@ -326,10 +339,23 @@ Play.prototype = {
 			windNoise.play();
 		}
 		
-
-		//put in blue background
 		game.physics.p2.setImpactEvents(true);
-		game.stage.backgroundColor = "#da9986";
+		winAnim = false;
+		//put in sunset backgrounds
+
+		if(this.level == 1 || this.level == 10){ //levels 1 and 10
+			game.stage.backgroundColor = "#A497B9";
+		}else if(this.level == 2 || this.level == 9){//level 2 and 9
+			game.stage.backgroundColor = "#C89EC9";
+		}else if(this.level == 3 || this.level == 8){ //levels 1 and 10
+			game.stage.backgroundColor = "#E2AABD";
+		}else if(this.level == 4 || this.level == 7){//level 2 and 9
+			game.stage.backgroundColor = "#F1BCB3";
+		}else if(this.level == 5 || this.level == 6){ //levels 1 and 10
+			game.stage.backgroundColor = "#EFCDC7";
+		}
+		
+		//game.stage.backgroundColor = "#da9986";
 
 		//create cloud group
 		/*var cloudVertical = game.add.group();
@@ -349,6 +375,8 @@ Play.prototype = {
 		thawSound.volume = 0.5;
 		chimneyNoise = game.add.audio('chimneyNoise');
 		chimneyNoise.volume = 0.5;
+		winSound = game.add.audio('winSound');
+		winSound.volume = 0.5;
 
 		//set up collision groups
 		var platform = game.physics.p2.createCollisionGroup();
@@ -980,18 +1008,50 @@ Play.prototype = {
 		jumpAnimOnce = 0;
 		direction = 0;
 
+		if(hasDied == true){
+			//console.log(deathX);
+			deathFallNoise.play();
+			var deathSpot = game.add.emitter(deathX, deathY, 50);
+			deathSpot.makeParticles('deathPetal');
+			//deathSpot.setAngle(1,2);
+			//deathSpot.setAngle(280, 330);
+			//deathSpot.setXSpeed(-90, -20);
+			//deathSpot.setYSpeed(-35 , 50);
+			deathSpot.start(true, 5000, 0, 60);
+		}
+
 		function toNextLevel(body, bodyB, shapeA, shapeB, equation){
-			endArrow.destroy();
+			endArrow.kill();
+			hasDied = false;
 			//increment level
 			//this.level = this.level+1;
 			currentLevel++;
-			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
+			player.kill();
+			winSound.play();
+			var winSpot = game.add.emitter(endArrow.body.x, endArrow.body.y);
+			winSpot.makeParticles('endParticle');
+			//deathSpot.setAngle(1,2);
+			//deathSpot.setAngle(280, 330);
+			winSpot.setXSpeed(-350, -200);
+			if(this.level < 10){
+				winSpot.gravity = new Phaser.Point(-200, 30);
+			}else{
+				winSpot.gravity = new Phaser.Point(1320, -300);
+				winSpot.setAlpha(0.1, 0.9, 200);
+			}
+			
+			//winSpot.setYSpeed(0, 0);
+			winSpot.start(false, 5000, 10, 230);
+			winAnim = true;
+			//game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 		}
 
 		function killPlayer(body, bodyB, shapeA, shapeB, equation){
-			
+			deathX = player.body.x;
+			deathY = player.body.y;
+			hasDied = true;
 			game.state.start('Play', true, false, this.level); //move to Play if player dies
-			deathFallNoise.play(); //play death sound
+			
 		}
 
 		
@@ -1010,6 +1070,8 @@ Play.prototype = {
 		
 
 		//endArrow.body.onBeginContact.add(toNextlevel, this);
+		fadeEffect = game.add.sprite(0, 0, 'FadeEffect');
+		fadeEffect.alpha = 0;
 
 		
 
@@ -1029,8 +1091,11 @@ Play.prototype = {
 				currentLevel = 12;
 				game.state.start('Cutscene', true, false, this.level); //move to alternate ending
 			}else{
+				//killPlayer()
+				deathX = player.body.x;
+				deathY = 1325;
+				hasDied = true;
 				game.state.start('Play', true, false, this.level); //move to Play if player dies
-				deathFallNoise.play(); //play death sound
 			}
 		}
 
@@ -1173,12 +1238,32 @@ Play.prototype = {
 				player.body.x = 570;
 				chimneyNoise.play(); //play jump sound
 				player.body.y = 150;
+
+				var chimneySpot = game.add.emitter(565, 190);
+				chimneySpot.makeParticles('smokeCloud');
+				chimneySpot.setYSpeed(-350, -200);
+				chimneySpot.gravity = new Phaser.Point(400, -80);
+
+				//winSpot.setYSpeed(0, 0);
+				chimneySpot.setAlpha(0.8, 0.8);
+				chimneySpot.start(true, 2000, 10, 4);
 				//downPress = true;
 			//}
 		}else{
 			//downPress = false;
 		}
 
+		if(winAnim == true){
+			winAnimTimer++;
+			if(fadeEffect.alpha < 1){
+				fadeEffect.alpha = fadeEffect.alpha+(0.006);
+			}
+			if(winAnimTimer == 240){
+				game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
+				winAnimTimer = 0;
+
+			}	
+		}
 		//refresh jump function check
 		/*if(jumpOnce == 0){
 			game.stage.backgroundColor = "#FFFFCC";
@@ -1194,6 +1279,34 @@ Play.prototype = {
 		//game.debug.spriteInfo(player, 32, 32);
 	}
 }
+
+/*var deathAnimation = function(game) {};
+deathAnimation.prototype = {
+	preload: function(){
+		console.log('deathAnimation: preload');
+	},
+	create: function(){
+		console.log('deathAnimation: create');
+		deathFallNoise.play(); //play death sound
+
+	},
+	update: function(){
+		game.state.start('Play', true, false, this.level); //move to Play if player dies
+	}
+}
+
+var winAnimation = function(game) {};
+winAnimation.prototype = {
+	preload: function(){
+		console.log('winAnimation: preload');
+	},
+	create: function(){
+		console.log('winAnimation: craete');
+	},
+	update: function(){
+
+	}
+}*/
 
 var Credits = function(game) {};
 Credits.prototype = {
@@ -1254,5 +1367,7 @@ game.state.add('Cutscene', Cutscene);
 game.state.add('Play', Play);
 game.state.add('Credits', Credits);
 game.state.add('GameOver', GameOver);
+/*game.state.add('deathAnimation', deathAnimation);
+game.state.add('winAnimation', winAnimation);*/
 //start at main menu
 game.state.start('MainMenu');
