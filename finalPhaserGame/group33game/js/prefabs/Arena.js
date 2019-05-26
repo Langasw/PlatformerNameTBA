@@ -18,7 +18,11 @@ function Arena(game, xPass, yPass, key, level/*, frame*/){
 		this.body.loadPolygon('stageHitboxWide', 'garden');
 	}else if(level == 9){
 		this.body.loadPolygon('ruinsHitbox', 'garden');
-		this.body.loadPolygon('ruinsHitbox', 'testRuins');
+		this.body.loadPolygon('ruinsHitbox', 'ruinsHitbox');
+	}else if(level == 10){
+		this.body.loadPolygon('finalHitbox', 'stage10Ledge');
+		this.body.loadPolygon('finalHitbox', 'stage10Cliff');
+		this.body.loadPolygon('finalHitbox', 'stage10cave');
 	}
 	
 

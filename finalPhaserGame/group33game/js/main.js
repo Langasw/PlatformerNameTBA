@@ -8,7 +8,7 @@ var game = new Phaser.Game(1200, 1320, Phaser.AUTO);
 var player;
 //var platform; //group for platformable objects (bridges, clouds, background)
 //var touchPlatform; //group for objects that have collission with objects (player)
-var currentLevel = 5;
+var currentLevel = 1;
 var arena;
 var endArrow;
 var waterfallPlatform;
@@ -29,6 +29,7 @@ var testTimer = 0;
 var jumpNoise;
 var deathFallNoise;
 var freezeSound;
+var chimneyNoise;
 var thawSound;
 
 ///CLOUD FUNCTIONS
@@ -93,8 +94,8 @@ MainMenu.prototype = {
 		// preload assets
 
 		//title screen assets
-		game.load.image('titleImage', 'assets/img/TitleBackground.png');
-		game.load.image('titleName', 'assets/img/Title.png');
+		game.load.image('titleImage', 'assets/img/TitleBackgroundEdit.png');
+		game.load.image('titleName', 'assets/img/TitleEdit.png');
 		game.load.image('Petal3', 'assets/img/Petal3.png');
 		game.load.image('Petal2', 'assets/img/Petal2.png');
 		game.load.image('Blossom', 'assets/img/Petal1.png');
@@ -131,7 +132,8 @@ MainMenu.prototype = {
 		game.load.image('houseFinal', 'assets/img/houseFinal.png');
 		game.load.image('doormat', 'assets/img/doormat.png');
 		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
-		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox.json', null);
+		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox2.json', null);
+		game.load.physics('finalHitbox', 'js/json/level10Hitbox.json', null);
 		game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
 		game.load.physics('housePhysics', 'js/json/houseHitbox.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
@@ -141,6 +143,7 @@ MainMenu.prototype = {
 		game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
 		game.load.audio('freezeSound', ['assets/audio/freezeSound.wav']);
 		game.load.audio('thawSound', ['assets/audio/thawSound.wav']);
+		game.load.audio('chimneyNoise', ['assets/audio/chimneyNoise.wav']);
 		game.load.audio('windNoise', ['assets/audio/windNoise.mp3']);
 	},
 	create: function() {
@@ -219,9 +222,9 @@ Cutscene.prototype = {
 	create: function(){
 		console.log('Cutscene: create');
 
-		windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
+		/*windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
 		windNoise.volume = 0.1;
-		windNoise.play();
+		windNoise.play();*/
 
 		cutsceneTime = 0;
 		CutsceneText = game.add.text(game.width/2, (game.height/2)-200, 
@@ -229,7 +232,24 @@ Cutscene.prototype = {
 			{fontSize: '50px', fill: '#000' });
 		CutsceneText.anchor.set(0.5);
 		CutsceneText.align = 'center';
-		game.stage.backgroundColor = "#FACADE";
+
+		//set background colors
+		if(this.level == 1 || this.level == 2){
+			game.stage.backgroundColor = "#fff9c2";
+		}else if(this.level == 3 || this.level == 4){
+			game.stage.backgroundColor = "#fde7b1";
+
+		}else if(this.level == 5 || this.level == 6){
+			game.stage.backgroundColor = "#ffd5b3";
+
+		}else if(this.level == 7|| this.level == 8){
+			game.stage.backgroundColor = "#ffb69e";
+
+		}else if(this.level == 9 || this.level == 10){
+			game.stage.backgroundColor = "#ffa791";
+		}
+
+		//game.stage.backgroundColor = "#FACADE";
 		//take cutscene text
 		if(this.level == 1){
 			CutsceneText.text = BufferText1;
@@ -264,11 +284,15 @@ Cutscene.prototype = {
 			CutsceneText.text +
 			'Press Space to Continue';
 		}
-		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && (cutsceneTime > cutsceneLength)){ 
+		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && (cutsceneTime > cutsceneLength) && this.cache.isSoundDecoded('windNoise')){ 
 		//space bar is pressed and cutscene time is enough
 			cutsceneTime = 0;
 			if(this.level <= 10){ //if the game is in a standard level #
 				game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
+				//wait for mp3 to decode
+				/*if(this.cache.isSoundDecoded('windNoise')){
+					game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
+				}*/
 			}else{
 				currentLevel = 1;
 				windNoise.destroy();
@@ -295,6 +319,14 @@ Play.prototype = {
 		//obsts.debug = true;
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
+		//play bg noise
+		if(this.level == 1){
+			windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
+			windNoise.volume = 0.1;
+			windNoise.play();
+		}
+		
+
 		//put in blue background
 		game.physics.p2.setImpactEvents(true);
 		game.stage.backgroundColor = "#da9986";
@@ -315,6 +347,8 @@ Play.prototype = {
 		freezeSound.volume = 0.5;
 		thawSound = game.add.audio('thawSound');
 		thawSound.volume = 0.5;
+		chimneyNoise = game.add.audio('chimneyNoise');
+		chimneyNoise.volume = 0.5;
 
 		//set up collision groups
 		var platform = game.physics.p2.createCollisionGroup();
@@ -657,7 +691,7 @@ Play.prototype = {
 			highY = 1200;
 			platformSpeed = 50;
 
-			cloudH = game.add.sprite(500, 160, 'Cloud');
+			cloudH = game.add.sprite(500, 120, 'Cloud');
 			cloudH.enableBody = true;
 			game.physics.p2.enable(cloudH);
 			cloudH.physicsBodyType = Phaser.Physics.P2JS;
@@ -812,10 +846,27 @@ Play.prototype = {
 			playerStartY = playerStartY + 250;
 			arrowStartY = arrowStartY + 250;
 		}else if(this.level == 10){
-			cloud1Exist = false;
+			cloud1Exist = true;
 			cloud2Exist = false;
 			cloudHExist = false;
-			arrowStartY = arrowStartY + 20;
+			arrowStartY = arrowStartY + 70;
+
+			//create cloud platform 1
+			cloud1Start = 540;
+			cloud1Range = 65;
+			cloud1Speed = 60;
+
+			cloud1 = game.add.sprite(760, cloud1Start, 'Cloud');
+			cloud1.enableBody = true;
+			game.physics.p2.enable(cloud1);
+			cloud1.physicsBodyType = Phaser.Physics.P2JS;
+			cloud1.body.clearShapes();
+			cloud1.body.setRectangle(140, 40);
+			cloud1.anchor.set(0.5);
+			cloud1.body.setCollisionGroup(platform);
+			cloud1.body.collides([touchPlatform]);
+			cloud1.body.kinematic = true;
+
 		}
 
 		
@@ -952,6 +1003,10 @@ Play.prototype = {
 		//end level if player runs into arrow
 		endArrow.body.collides([touchPlatform]/*, toNextLevel, this*/);
 		endArrow.body.onBeginContact.add(toNextLevel, this);
+
+		var arrowBounce = game.add.tween(endArrow);
+		arrowBounce.to({y: game.world.height-endArrow.height}, 2000, Phaser.Easing.Bounce.In, true);
+		arrowBounce.start();
 		
 
 		//endArrow.body.onBeginContact.add(toNextlevel, this);
@@ -1037,6 +1092,7 @@ Play.prototype = {
 		if(this.cursors.up.isDown){
 			if(jumpOnce == true){
 				player.body.velocity.y = -320; //jump
+				player.animations.play('jumping');
 				//player.animations.play('jumping');
 				jumpNoise.play(); //play jump sound
 			}
@@ -1071,7 +1127,7 @@ Play.prototype = {
 
 		//animation control
 		if(this.cursors.up.isPressed){ //upward movement
-			player.animations.play('jumping');
+			//player.animations.play('jumping');
 			/*if(jumpAnimOnce == 0){
 				player.animations.play('jumping');
 			}
@@ -1115,6 +1171,7 @@ Play.prototype = {
 			//if(downPress == false){
 				player.body.velocity.y = -250;
 				player.body.x = 570;
+				chimneyNoise.play(); //play jump sound
 				player.body.y = 150;
 				//downPress = true;
 			//}

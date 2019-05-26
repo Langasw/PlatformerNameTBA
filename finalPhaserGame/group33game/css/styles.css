@@ -1,7 +1,16 @@
 body {
 	font-family: Helvetica;
+	font-size: 32px;
+	width: 960px;
+	margin: 0 auto;
+	background-color: #F9DBE4;
 }
 
 canvas {
-	border: 1px solid black;
+	border: 12px solid #BAB2B5;
+}
+
+h1 {
+	color: #4F4A41;
+	text-align: left;
 }
