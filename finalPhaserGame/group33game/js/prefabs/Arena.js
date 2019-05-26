@@ -5,7 +5,7 @@ function Arena(game, xPass, yPass, key, level/*, frame*/){
 	//create new sprite 
 	Phaser.Sprite.call(this, game, xPass, yPass, key/*, frame*/); 
 	//add properties
-	this.anchor.set(0); //anchor at center
+	this.anchor.set(0,0); //anchor at center
 	game.physics.p2.enable(this); //enable physics
 	this.body.clearShapes();
 	//load body

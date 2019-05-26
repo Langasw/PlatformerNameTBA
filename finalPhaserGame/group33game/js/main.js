@@ -12,6 +12,8 @@ var currentLevel = 1;
 var arena;
 var endArrow;
 var waterfallPlatform;
+var waterfallCurrentY;
+var waterfallCurrentUpward;
 var switchPool;
 var waterfall;
 var doormat;
@@ -49,6 +51,11 @@ var cloudHSpeed = 200;
 var cloud1Exist = false;
 var cloud2Exist = false;
 var cloudHExist = false;
+var cloud1CurrentY;
+var cloud1CurrentUpward;
+var cloud2CurrentY;
+var cloud2CurrentUpward;
+var cloudHCurrentX;
 var cloud1Range; //vertical cloud
 var cloud1Start;
 var cloud1Upward = 0;
@@ -114,7 +121,7 @@ MainMenu.prototype = {
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testRuins', 'assets/img/testRuins.png');
-		game.load.image('testFinal', 'assets/img/testFinal.png');
+		game.load.image('testFinal', 'assets/img/textFinalEnd.png');
 		game.load.atlas('waterfallGraphics', 'assets/img/waterfallStates.png', 'js/json/waterfallGraphics.json');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
 		game.load.image('collideTest', 'assets/img/testSprite.png');
@@ -240,9 +247,16 @@ Cutscene.prototype = {
 		windNoise.play();*/
 
 		cutsceneTime = 0;
+		let textStyle = {
+			font: 'Optima',
+			fontSize: 50,
+			fill: '#000',
+			wordWrap: false,
+			wrapWidth: 1000
+		}
+
 		CutsceneText = game.add.text(game.width/2, (game.height/2)-200, 
-			'Placeholder Cutscene Text\n',
-			{fontSize: '50px', fill: '#000' });
+			'Placeholder Cutscene Text\n', textStyle);
 		CutsceneText.anchor.set(0.5);
 		CutsceneText.align = 'center';
 
@@ -365,6 +379,8 @@ Play.prototype = {
 		var playerStartY = 390;
 		var arrowStartY = 90;
 
+		game.world.setBounds(0, 0, 1800, 1320);
+
 		//load all sound effects
 		jumpNoise = game.add.audio('jumpSound');
 		jumpNoise.volume = 0.5;
@@ -401,6 +417,7 @@ Play.prototype = {
 		rightWall.body.setRectangle(50, 1500);
 		rightWall.body.setCollisionGroup(platform);
 		rightWall.body.collides([touchPlatform]);
+		rightWall.fixedToCamera = true;
 		rightWall.body.kinematic = true;
 
 		//set up the proper backgrounds
@@ -529,9 +546,10 @@ Play.prototype = {
 		}else if(this.level == 10){
 			//final arena
 
-			arena = new Arena(game, (game.width)/2, (game.height)/2, 'testFinal', this.level);
+			arena = new Arena(game, 900, (game.height)/2, 'testFinal', this.level);
 			game.add.existing(arena);
 			arena.enableBody = true;
+			//arena.anchor.set(0);
 			arena.physicsBodyType = Phaser.Physics.P2JS;
 			arena.body.setCollisionGroup(platform);
 			arena.body.collides([touchPlatform]);
@@ -571,7 +589,14 @@ Play.prototype = {
 			cloud1Start = 445;
 			cloud1Range = 180;
 
-			cloud1 = game.add.sprite(800, cloud1Start, 'Cloud');
+			var cloud1Y;
+			if(hasDied == false){
+				cloud1Y = cloud1Start;
+			}else{
+				cloud1Y = cloud1CurrentY;
+			}
+
+			cloud1 = game.add.sprite(800, cloud1Y, 'Cloud');
 			cloud1.enableBody = true;
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -596,7 +621,14 @@ Play.prototype = {
 			cloud1Start = 420;
 			cloud1Range = 220;
 
-			cloud1 = game.add.sprite(430, cloud1Start, 'Cloud');
+			var cloud1Y;
+			if(hasDied == false){
+				cloud1Y = cloud1Start;
+			}else{
+				cloud1Y = cloud1CurrentY;
+			}
+
+			cloud1 = game.add.sprite(430, cloud1Y, 'Cloud');
 			cloud1.enableBody = true;
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -607,7 +639,14 @@ Play.prototype = {
 			cloud1.body.collides([touchPlatform]);
 			cloud1.body.kinematic = true;
 
-			cloudH = game.add.sprite(30, 180, 'Cloud');
+			var cloudHX;
+			if(hasDied == false){
+				cloudHX = 30;
+			}else{
+				cloudHX = cloudHCurrentX;
+			}
+
+			cloudH = game.add.sprite(cloudHX, 180, 'Cloud');
 			cloudH.enableBody = true;
 			game.physics.p2.enable(cloudH);
 			cloudH.physicsBodyType = Phaser.Physics.P2JS;
@@ -655,7 +694,14 @@ Play.prototype = {
 			cloud1Start = 320;
 			cloud1Range = 190;
 
-			cloud1 = game.add.sprite(930, cloud1Start, 'Cloud');
+			var cloud1Y;
+			if(hasDied == false){
+				cloud1Y = cloud1Start;
+			}else{
+				cloud1Y = cloud1CurrentY;
+			}
+
+			cloud1 = game.add.sprite(930, cloud1Y, 'Cloud');
 			cloud1.enableBody = true;
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -670,7 +716,14 @@ Play.prototype = {
 			cloud2Start = 820;
 			cloud2Range = 200;
 
-			cloud2 = game.add.sprite(260, cloud2Start, 'Cloud');
+			var cloud2Y;
+			if(hasDied == false){
+				cloud2Y = cloud2Start;
+			}else{
+				cloud2Y = cloud2CurrentY;
+			}
+
+			cloud2 = game.add.sprite(260, cloud2Y, 'Cloud');
 			cloud2.enableBody = true;
 			game.physics.p2.enable(cloud2);
 			cloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -719,7 +772,14 @@ Play.prototype = {
 			highY = 1200;
 			platformSpeed = 50;
 
-			cloudH = game.add.sprite(500, 120, 'Cloud');
+			var cloudHX;
+			if(hasDied == false){
+				cloudHX = 500;
+			}else{
+				cloudHX = cloudHCurrentX;
+			}
+
+			cloudH = game.add.sprite(cloudHX, 120, 'Cloud');
 			cloudH.enableBody = true;
 			game.physics.p2.enable(cloudH);
 			cloudH.physicsBodyType = Phaser.Physics.P2JS;
@@ -741,7 +801,14 @@ Play.prototype = {
 			cloud1Start = 280;
 			cloud1Range = 160;
 
-			cloud1 = game.add.sprite(810, cloud1Start, 'Cloud');
+			var cloud1Y;
+			if(hasDied == false){
+				cloud1Y = cloud1Start;
+			}else{
+				cloud1Y = cloud1CurrentY;
+			}
+
+			cloud1 = game.add.sprite(810, cloud1Y, 'Cloud');
 			cloud1.enableBody = true;
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -777,7 +844,14 @@ Play.prototype = {
 			cloud1Start = 340;
 			cloud1Range = 150;
 
-			cloud1 = game.add.sprite(930, cloud1Start, 'Cloud');
+			var cloud1Y;
+			if(hasDied == false){
+				cloud1Y = cloud1Start;
+			}else{
+				cloud1Y = cloud1CurrentY;
+			}
+
+			cloud1 = game.add.sprite(930, cloud1Y, 'Cloud');
 			cloud1.enableBody = true;
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -792,7 +866,14 @@ Play.prototype = {
 			cloud2Start = 820;
 			cloud2Range = 280;
 
-			cloud2 = game.add.sprite(260, cloud2Start, 'Cloud');
+			var cloud2Y;
+			if(hasDied == false){
+				cloud2Y = cloud2Start;
+			}else{
+				cloud2Y = cloud2CurrentY;
+			}
+
+			cloud2 = game.add.sprite(260, cloud2Y, 'Cloud');
 			cloud2.enableBody = true;
 			game.physics.p2.enable(cloud2);
 			cloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -840,7 +921,14 @@ Play.prototype = {
 			cloud1Range = 170;
 			cloud1Speed = 130;
 
-			cloud1 = game.add.sprite(930, cloud1Start, 'Cloud');
+			var cloud1Y;
+			if(hasDied == false){
+				cloud1Y = cloud1Start;
+			}else{
+				cloud1Y = cloud1CurrentY;
+			}
+
+			cloud1 = game.add.sprite(930, cloud1Y, 'Cloud');
 			cloud1.enableBody = true;
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -909,7 +997,14 @@ Play.prototype = {
 		player.body.onEndContact.add(deleteJump, this);
 
 		//create waterfall platform
-		waterfallPlatform = new WheelPlatform(game, 1050, (lowY+highY)/2, 'wheelPlatform', 600, 900, 180); //game, x, y, image key, lowest y, highest y, speed
+		var waterfallY;
+		if(hasDied == false){
+			waterfallY = (lowY+highY)/2
+		}else{
+			waterfallY = waterfallCurrentY;
+		}
+		waterfallCurrentY;
+		waterfallPlatform = new WheelPlatform(game, 1050, waterfallY, 'wheelPlatform', 600, 900, 180); //game, x, y, image key, lowest y, highest y, speed
 		game.add.existing(waterfallPlatform);
 		waterfallPlatform.enableBody = true;
 		waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
@@ -1000,8 +1095,15 @@ Play.prototype = {
 			//player.animations.play('landing');
 		}
 
-
-		upward = 0;
+		if(hasDied == false){
+			upward = 0;
+			cloud1Upward = 0;
+			cloud2Upward = 0;
+		}else{
+			upward = waterfallCurrentUpward;
+			cloud1Upward = cloud1CurrentUpward;
+			cloud2Upward = cloud2CurrentUpward;
+		}
 
 		testTimer = 0;
 		jumpOnce = true;
@@ -1036,8 +1138,8 @@ Play.prototype = {
 			if(this.level < 10){
 				winSpot.gravity = new Phaser.Point(-200, 30);
 			}else{
-				winSpot.gravity = new Phaser.Point(1320, -300);
-				winSpot.setAlpha(0.1, 0.9, 200);
+				winSpot.gravity = new Phaser.Point(1000, -300);
+				winSpot.setAlpha(0.55, 0.7, 200);
 			}
 			
 			//winSpot.setYSpeed(0, 0);
@@ -1071,6 +1173,7 @@ Play.prototype = {
 
 		//endArrow.body.onBeginContact.add(toNextlevel, this);
 		fadeEffect = game.add.sprite(0, 0, 'FadeEffect');
+		fadeEffect.fixedToCamera = true;
 		fadeEffect.alpha = 0;
 
 		
@@ -1101,6 +1204,8 @@ Play.prototype = {
 
 
 		//general movement of platform
+		waterfallCurrentY = waterfallPlatform.body.y;
+		waterfallCurrentUpward = upward;
 		if(waterFrozen == false && upward == 0){
 			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
 		}else if(waterFrozen == false && upward == 1){
@@ -1110,6 +1215,10 @@ Play.prototype = {
 		}
 
 		//general movement of cloud 1
+		if(cloud1Exist){
+			cloud1CurrentY = cloud1.body.y;
+			cloud1CurrentUpward = cloud1Upward;
+		}
 		if(cloud1Exist && cloud1Upward == 0){
 			cloud1.body.velocity.y = -1 * cloud1Speed; //go upward
 		}else if(cloud1Exist && cloud1Upward == 1){
@@ -1117,6 +1226,10 @@ Play.prototype = {
 		}
 
 		//general movement of cloud 2
+		if(cloud2Exist){
+			cloud2CurrentY = cloud2.body.y;
+			cloud2CurrentUpward = cloud2Upward;
+		}
 		if(cloud2Exist && cloud2Upward == 0){
 			cloud2.body.velocity.y = -1 * cloud2Speed; //go upward
 		}else if(cloud2Exist && cloud2Upward == 1){
@@ -1148,6 +1261,9 @@ Play.prototype = {
 		}
 
 		//cloud H wrap
+		if(cloudHExist){
+			cloudHCurrentX = cloudH.body.x;
+		}
 		if(cloudHExist && cloudH.body.x > game.width + 100){
 			cloudH.body.x = -100;
 		}
@@ -1255,8 +1371,12 @@ Play.prototype = {
 
 		if(winAnim == true){
 			winAnimTimer++;
+			
 			if(fadeEffect.alpha < 1){
 				fadeEffect.alpha = fadeEffect.alpha+(0.006);
+			}
+			if(this.level > 9){
+				game.camera.x = game.camera.x+3.5;
 			}
 			if(winAnimTimer == 240){
 				game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
@@ -1274,6 +1394,8 @@ Play.prototype = {
 			
 	},
 	render: function(){
+		 //game.debug.cameraInfo(game.camera, 32, 32);
+
 		//game.debug.body(platform);
 		//game.debug.body(touchPlatform);
 		//game.debug.spriteInfo(player, 32, 32);
