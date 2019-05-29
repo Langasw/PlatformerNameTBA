@@ -21,7 +21,7 @@ var fadeEffect;
 var playerInHouse = false;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
-var cutsceneLength = 50; //minimum time a cutscene can last
+var cutsceneLength = 250; //minimum time a cutscene can last
 var upward = 0; //movement of the waterfall platform
 var lowY; //lowest y point of the waterfall platform in the stage
 var highY; //highest y point of the waterfall platform in the stage
@@ -32,6 +32,8 @@ var testTimer = 0;
 var jumpNoise;
 var deathFallNoise;
 var freezeSound;
+var breakSound;
+var breakNoiseOnce = false;
 var chimneyNoise;
 var thawSound;
 var winSound;
@@ -40,6 +42,8 @@ var deathY;
 var hasDied = false;
 var winAnim = false;
 var winAnimTimer = 0;
+var cameraScroll;
+var altEndTitle = false;
 
 ///CLOUD FUNCTIONS
 var cloud1;
@@ -74,30 +78,103 @@ var downPress = false;
 
 
 ///game's script
+//|                                    					    | text size
+var BufferText1 = 'Petals are time’s flow given form. \n' + '\n' +
 
-var BufferText1 = 'Level 1 Placeholder Text\n';
+'They flow through the wind as freely \n' + 'as nature allows them to. \n' + '\n' +
 
-var BufferText2 = 'Level 2 Placeholder Text\n';
+'The blue sky, the high mountains, \n' + 'they are still young as they explore earth’s beauty… \n' + '\n';
 
-var BufferText3 = 'Level 3 Placeholder Text\n';
+var BufferText2 = 'The winds that carry the petals \n' + 'offer them a new place to live. \n' + '\n' +
 
-var BufferText4 = 'Level 4 Placeholder Text\n';
+'Some ride through clouds, \n' +
+'some journey through the streams, \n' + 
+'and some reach heights previously unreachable. \n' + '\n' +
 
-var BufferText5 = 'Level 5 Placeholder Text\n';
+ 'Could this place be the one to call home? \n' + '\n';
 
-var BufferText6 = 'Level 6 Placeholder Text\n';
 
-var BufferText7 = 'Level 7 Placeholder Text\n';
+var BufferText3 = 'Not all of the world is as kind, however. \n' + '\n' +
 
-var BufferText8 = 'Level 8 Placeholder Text\n';
+'Danger slowly festers around every corner. \n' + '\n' +
 
-var BufferText9 = 'Level 9 Placeholder Text\n';
+'Trust not the clouds that lie in wait to prey \n' +
+'on the unwary, and return home for rest… \n' + '\n';
 
-var BufferText10 = 'Level 10 Placeholder Text\n';
 
-var BufferTextEnd = 'Ending Placeholder Text\n';
+var BufferText4 = 'As the world withers away, \n' +
+'it may be harder to find where home is. \n' + '\n' +
 
-var BufferTextAlt = 'Alt End Placeholder Text\n';
+'Yet, it is not an impossibility. \n' + '\n' +
+
+'Stop to reflect on a solution, \n' + 
+'and surely you will triumph forward. \n' + '\n';
+
+
+var BufferText5 = 'Solace. \n' + '\n' + 
+
+'After enduring several hardships, \n' +
+'stone plants itself in protection of the petals. \n' + '\n' +
+
+'No danger in sight, perhaps now they \n' +
+'may peacefully rest in their new sanctuary... \n' + '\n';
+
+var BufferText6 = 'Quiet as it may be, \n' +
+'their sanctuary is not impenetrable. \n' + '\n' +
+
+'Even now, time makes way \n' +
+'for brand new danger. \n' + '\n' +
+
+'The dilemma arrives what to follow: \n' +
+'silence of peace, or winds of progress? \n' + '\n';
+
+
+var BufferText7 = 'Is their sanctuary truly a shelter...? \n' + '\n' + 
+
+'Doubt, Fear, Worry... \n' +
+'they all burrow into the harmony of peace. \n' + '\n' +
+
+'The decision is made, and the petals \n' +
+'choose to flow with the progressing winds. \n' + '\n';
+
+var BufferText8 = 'Time slowly makes its reach over nature, \n' +
+'acting with cruelty and brutality. \n' + '\n' +
+
+'The sanctuary has become undone, \n' + 
+'catching ablaze its own complacency. \n' + '\n' +
+
+'The petals have no choice but continue forward… \n' + '\n';
+
+var BufferText9 = 'The petals return to find their world left in ruin. \n' + '\n' +
+
+'Though there is nostalgia for victories of the past, \n' + 
+'there is only one way left standing to follow, upwards. \n' + '\n' +
+
+'Hope shines through as the cycle of time \n' + 
+'approaches the tip of its tail. \n' + '\n';
+
+var BufferText10 = 'Peace returns as time catches up to previous danger, \n' +
+'but the petals are not immune its universal pull either. \n' + '\n' +
+
+'They reflect on their journey one last time, \n' + 
+'this cycle of peace and corruption, \n' + 
+'life, death, and rebirth, \n' + 
+'destruction and reconstruction... \n' + '\n' +
+
+'They follow their own wind, making one final leap....\n' + '\n';
+
+var BufferTextEnd = 'You guide the petals towards their final memories. \n' + '\n' +
+'They can finally rest with nature, \n' + '\n' +
+'as the cycle begins once more in full bloom. \n' + '\n';
+
+
+var BufferTextAlt = '….As you wish. \n' + '\n' +
+
+'This cycle...this cycle of \n' +
+'endless destruction and rebirth… \n' + '\n' +
+
+'By your command, it is finished. \n' + '\n';
+
 
 
 //Main Menu state
@@ -109,11 +186,13 @@ MainMenu.prototype = {
 
 		//title screen assets
 		game.load.image('titleImage', 'assets/img/TitleBackgroundEdit.png');
+		game.load.image('titleImage2', 'assets/img/TitleBackgroundAltEnd.png');
 		game.load.image('titleName', 'assets/img/TitleEdit.png');
 		game.load.image('Petal3', 'assets/img/Petal3.png');
 		game.load.image('Petal2', 'assets/img/Petal2.png');
 		game.load.image('Blossom', 'assets/img/Petal1.png');
 		game.load.image('PlayButton', 'assets/img/PlayButton.png');
+		game.load.image('PlayShadow', 'assets/img/PlayShadow.png');
 		game.load.image('CreditButton', 'assets/img/CreditButton.png');
 		game.load.image('Select', 'assets/img/SelectIcon.png');
 		//----
@@ -164,33 +243,42 @@ MainMenu.prototype = {
 		game.load.audio('winSound', ['assets/audio/winLevel.wav']);
 		game.load.audio('chimneyNoise', ['assets/audio/chimneyNoise.wav']);
 		game.load.audio('windNoise', ['assets/audio/windNoise.mp3']);
+		game.load.audio('break', ['assets/audio/break.wav'])
 
 	},
 	create: function() {
 		console.log('MainMenu: create');
 
-		//adds the background image to the title screen
-		this.add.image(0,0,'titleImage');
+		if(altEndTitle == false){
+			//adds the background image to the title screen
+			this.add.image(0,0,'titleImage');
 
-		//creates the petal falling animation and wrap
-		for (var j =0; j < 40; j++){
-			this.petalOne = new Title(game, 'Petal2');
-			game.add.existing(this.petalOne);
+			//creates the petal falling animation and wrap
+			for (var j =0; j < 40; j++){
+				this.petalOne = new Title(game, 'Petal2');
+				game.add.existing(this.petalOne);
 
-			this.petalTwo = new Title(game, 'Petal3');
-			game.add.existing(this.petalTwo);
+				this.petalTwo = new Title(game, 'Petal3');
+				game.add.existing(this.petalTwo);
 
-			//this.Blossom = new Title(game, 'Blossom');
-			//game.add.existing(this.Blossom);
+				//this.Blossom = new Title(game, 'Blossom');
+				//game.add.existing(this.Blossom);
+			}
+
+			//adds the title, play and credit icons
+			this.add.image(200,350, 'titleName');
+
+			//allows the user to click on the play button
+			var ButtonPlay = this.add.image(525,925, 'PlayButton');
+			ButtonPlay.inputEnabled = true;
+			ButtonPlay.events.onInputDown.add(playButtonClicked, this);
+			
+		}else{
+			this.add.image(0,0,'titleImage2');
+			this.add.image(200,350, 'titleName');
+			this.add.image(525, 925, 'PlayShadow');
 		}
 
-		//adds the title, play and credit icons
-		this.add.image(200,350, 'titleName');
-
-		//allows the user to click on the play button
-		var ButtonPlay = this.add.image(525,925, 'PlayButton');
-		ButtonPlay.inputEnabled = true;
-		ButtonPlay.events.onInputDown.add(playButtonClicked, this);
 		var ButtonCredits = this.add.image(500,1050, 'CreditButton');
 		ButtonCredits.inputEnabled = true;
 		ButtonCredits.events.onInputDown.add(creditsButtonClicked, this);
@@ -255,9 +343,10 @@ Cutscene.prototype = {
 			wrapWidth: 1000
 		}
 
-		CutsceneText = game.add.text(game.width/2, (game.height/2)-200, 
+		CutsceneText = game.add.text(game.width/2, (game.height/2)-100, 
 			'Placeholder Cutscene Text\n', textStyle);
 		CutsceneText.anchor.set(0.5);
+		CutsceneText.alpha = 0;
 		CutsceneText.align = 'center';
 
 		//set background colors
@@ -303,9 +392,16 @@ Cutscene.prototype = {
 		}else if(this.level == 12){
 			CutsceneText.text = BufferTextAlt;
 		}
+		fadeEffect = game.add.sprite(0, 0, 'FadeEffect');
+		cameraScroll = 0;
 	},
 	update: function(){
 		cutsceneTime++; //increment cutscene time
+		fadeEffect.alpha -= cameraScroll;
+		if(CutsceneText.alpha < 1){
+			CutsceneText.alpha += 0.02;
+		}
+		cameraScroll += 0.005;
 		if(cutsceneTime == cutsceneLength){
 			CutsceneText.text =
 			CutsceneText.text +
@@ -316,6 +412,7 @@ Cutscene.prototype = {
 			cutsceneTime = 0;
 			if(this.level <= 10){ //if the game is in a standard level #
 				game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
+				cameraScroll = 0;
 				//wait for mp3 to decode
 				/*if(this.cache.isSoundDecoded('windNoise')){
 					game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
@@ -349,7 +446,7 @@ Play.prototype = {
 		//play bg noise
 		if(this.level == 1){
 			windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
-			windNoise.volume = 0.1;
+			windNoise.volume = 0.15;
 			windNoise.play();
 		}
 		
@@ -379,7 +476,7 @@ Play.prototype = {
 		var playerStartY = 390;
 		var arrowStartY = 90;
 
-		game.world.setBounds(0, 0, 1800, 1320);
+		game.world.setBounds(0, 0, 3000, 1320);
 
 		//load all sound effects
 		jumpNoise = game.add.audio('jumpSound');
@@ -393,6 +490,8 @@ Play.prototype = {
 		chimneyNoise.volume = 0.5;
 		winSound = game.add.audio('winSound');
 		winSound.volume = 0.5;
+		breakSound = game.add.audio('break');
+		breakSound.volume = 0.5;
 
 		//set up collision groups
 		var platform = game.physics.p2.createCollisionGroup();
@@ -799,7 +898,7 @@ Play.prototype = {
 
 			//create cloud platform
 			cloud1Start = 280;
-			cloud1Range = 160;
+			cloud1Range = 180;
 
 			var cloud1Y;
 			if(hasDied == false){
@@ -841,8 +940,10 @@ Play.prototype = {
 			cloudHExist = false;
 
 			//create cloud platform 1
-			cloud1Start = 340;
+			cloud1Start = 380;
 			cloud1Range = 150;
+			cloud1Speed = 150;
+			cloud2Speed = 150;
 
 			var cloud1Y;
 			if(hasDied == false){
@@ -939,7 +1040,7 @@ Play.prototype = {
 			cloud1.body.collides([touchPlatform]);
 			cloud1.body.kinematic = true;
 
-			var deathCloud1 = game.add.sprite(1043, 625, 'deathCloudD');
+			var deathCloud1 = game.add.sprite(1043, 545, 'deathCloudD');
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
 			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -968,7 +1069,7 @@ Play.prototype = {
 			arrowStartY = arrowStartY + 70;
 
 			//create cloud platform 1
-			cloud1Start = 540;
+			cloud1Start = 580;
 			cloud1Range = 65;
 			cloud1Speed = 60;
 
@@ -1188,11 +1289,24 @@ Play.prototype = {
 		//reset player velocity
 		player.body.velocity.x = 0; //start by reseting velocity to zero
 
-		//player dies if they fall into a pit (CURRENTLY NOT WORKING)
+		//player dies if they fall into a pit 
 		if(player.y > 1450){ //if they exceed y value too much (i.e fall out of world bounds)
 			if(this.level == 10){ //if they die in the last level
 				currentLevel = 12;
-				game.state.start('Cutscene', true, false, this.level); //move to alternate ending
+				altEndTitle = true;
+				if(breakNoiseOnce == false){
+					breakSound.play();
+					breakNoiseOnce = true;
+				}
+				if(fadeEffect.alpha < 1 && winAnimTimer > 60){
+					fadeEffect.alpha = fadeEffect.alpha+(0.006);
+				}
+				winAnimTimer++;
+				if(winAnimTimer == 240){
+					game.state.start('Cutscene', true, false, this.level); //move to alternate ending
+					winAnimTimer = 0;
+					breakNoiseOnce = false;
+				}
 			}else{
 				//killPlayer()
 				deathX = player.body.x;
@@ -1376,11 +1490,13 @@ Play.prototype = {
 				fadeEffect.alpha = fadeEffect.alpha+(0.006);
 			}
 			if(this.level > 9){
-				game.camera.x = game.camera.x+3.5;
+				game.camera.x = game.camera.x+cameraScroll;
+				cameraScroll = cameraScroll + 0.08;
 			}
 			if(winAnimTimer == 240){
 				game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 				winAnimTimer = 0;
+				cameraScroll = 0;
 
 			}	
 		}
