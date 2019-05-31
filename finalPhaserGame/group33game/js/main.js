@@ -22,7 +22,9 @@ var defaultJumpVelocity = -180;
 var jumpVelocity = defaultJumpVelocity;
 var followJump = false;
 var fadeEffect;
+var CreditsText;
 var rippleBackground;
+var cutsceneBackground;
 var playerInHouse = false;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
@@ -206,6 +208,7 @@ MainMenu.prototype = {
 		//----
 		game.load.image('rippleBackground', 'assets/img/rippleBackground.png');
 		game.load.image('rippleFilter', 'assets/img/rippleFilter.png');
+		game.load.image('creditsBackground', 'assets/img/creditsPage.png');
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testRuins', 'assets/img/testRuins.png');
@@ -354,13 +357,7 @@ Cutscene.prototype = {
 		windNoise.play();*/
 
 		cutsceneTime = 0;
-		let textStyle = {
-			font: 'Optima',
-			fontSize: 50,
-			fill: '#000',
-			wordWrap: false,
-			wrapWidth: 1000
-		}
+		
 
 		
 
@@ -382,6 +379,13 @@ Cutscene.prototype = {
 
 		rippleBackground = game.add.tileSprite(0, 0, 1200, 1320, 'rippleBackground');
 
+		let textStyle = {
+			font: 'Optima',
+			fontSize: 50,
+			fill: '#000',
+			wordWrap: false,
+			wrapWidth: 1000
+		}
 		CutsceneText = game.add.text(game.width/2, (game.height/2)-100, 
 			'Placeholder Cutscene Text\n', textStyle);
 		CutsceneText.anchor.set(0.5);
@@ -1592,19 +1596,42 @@ Credits.prototype = {
 	},
 	create: function(){
 		console.log('Credits: create');
-		var CreditsText;
+
+		cutsceneBackground = game.add.tileSprite(0, 0, 1200, 1320, 'creditsBackground');
+
+		CreditsText;
 		//check to see if format is right if something goes wrong
-		CreditsText = game.add.text(16, 16, 
-			'CREDITS \n' +
-			'Role: Kristofer Torres' + "\n" +
-			'Role: Matthew Loebach' + "\n" +
-			'Role: William Hintze' + "\n" +
-			'Press Space to Exit' + "\n" +
-			'this wont be what it looks like in the final game', 
-			{fontSize: '32px', fill: '#000' });
-		game.stage.backgroundColor = "#FACADE";
+		let textStyle = {
+			font: 'Optima',
+			fontSize: 70,
+			fill: '#000',
+			wordWrap: false,
+			wrapWidth: 1000
+		}
+		
+		
+
+		CreditsText = game.add.text(game.width/2, game.height/2-120, 
+			'CREDITS \n' + "\n" + 
+			'Main Artist: Kristofer Torres' + "\n" +
+			'Character Design: Kristofer Torres' + "\n" +
+			'Main Programmer: Matthew Loebach' + "\n" +
+			'Level Designer: Matthew Loebach' + "\n" +
+			'Story: William Hintze' + "\n" + "\n" +
+			'Press Space to Exit' + "\n", 
+			textStyle);
+		CreditsText.anchor.set(0.5);
+		CreditsText.alpha = 0;
+		CreditsText.align = 'center';
+
+		game.stage.backgroundColor = "#CAE7EF";
 	},
 	update: function(){
+		//cutsceneBackground.tilePosition.y += 1;
+		cutsceneBackground.tilePosition.x -= 4;
+		if(CreditsText.alpha < 1){
+			CreditsText.alpha += 0.02;
+		}
 		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
 			//pass this.score
 			game.state.start('MainMenu', true, false, this.score);
