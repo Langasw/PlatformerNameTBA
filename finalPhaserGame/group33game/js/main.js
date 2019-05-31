@@ -17,6 +17,10 @@ var waterfallCurrentUpward;
 var switchPool;
 var waterfall;
 var doormat;
+var jumpTimer = 0;
+var defaultJumpVelocity = -180;
+var jumpVelocity = defaultJumpVelocity;
+var followJump = false;
 var fadeEffect;
 var rippleBackground;
 var playerInHouse = false;
@@ -253,6 +257,7 @@ MainMenu.prototype = {
 	},
 	create: function() {
 		console.log('MainMenu: create');
+		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 		cutsceneShade = 0;
 
 		if(altEndTitle == false){
@@ -1196,8 +1201,8 @@ Play.prototype = {
 		//add player animations
 		player.animations.add('moving', [6, 7, 8, 5], 10, true); 
 		player.animations.add('still', [5], 10, true); 
-		player.animations.add('jumping', [1, 1, 2, 3, 3, 3, 3, 3, 0], 12, false); //
-		//player.animations.add('falling', [0], 10, true); //moving sprite is third on tempSpritesheet
+		player.animations.add('jumping', [1, 1, 2, 2, 3, 3, 3, 3, 3, 3, 0], 24, false); //
+		player.animations.add('falling', [0], 10, true); //moving sprite is third on tempSpritesheet
 		player.animations.add('landing', [4, 4, 4], 10, true); //
 		player.scale.set(0.8);
 
@@ -1207,6 +1212,9 @@ Play.prototype = {
 			//this is where landing animation should go, for only a few frames
 			//console.log('refreshing');
 			jumpOnce = true;
+			jumpVelocity = defaultJumpVelocity;
+			jumpTimer = 0;
+			followJump = false;
 			//player.animations.play('landing');
 		}
 
@@ -1303,7 +1311,7 @@ Play.prototype = {
 
 	},
 	update: function(){
-		//console.log(playerInPool);
+		//console.log(jumpAnimOnce);
 		var playerVelocity = 200; //CHANGE PLAYER VELOCITY HERE
 		//create keyboard
 		this.cursors = game.input.keyboard.createCursorKeys();
@@ -1408,11 +1416,16 @@ Play.prototype = {
 		//jumping movement
 		if(this.cursors.up.isDown){
 			if(jumpOnce == true){
-				player.body.velocity.y = -320; //jump
-				player.animations.play('jumping');
-				//player.animations.play('jumping');
+				player.body.velocity.y = defaultJumpVelocity;
 				jumpNoise.play(); //play jump sound
+				followJump = true;
 			}
+			if(jumpTimer < 15 && followJump){
+				player.body.velocity.y = jumpVelocity; //jump
+			}
+			jumpVelocity -= 10;
+			jumpTimer++;
+			
 			//jumpOnce = false;
 		}else{
 			//jumpOnce = 0;
@@ -1443,13 +1456,16 @@ Play.prototype = {
 		}
 
 		//animation control
-		if(this.cursors.up.isPressed){ //upward movement
+		if(this.cursors.up.isDown && followJump == true && jumpOnce == false){ //upward movement
 			//player.animations.play('jumping');
-			/*if(jumpAnimOnce == 0){
+			if(jumpAnimOnce == 0){
 				player.animations.play('jumping');
 			}
-			jumpAnimOnce = 1;*/
-		}else {
+
+			jumpAnimOnce = 1;
+		}else if(jumpOnce == false){
+			player.animations.play('falling');
+		}else{
 			//horizontal movement
 			if(this.cursors.left.isDown || this.cursors.right.isDown){
 				player.animations.play('moving');

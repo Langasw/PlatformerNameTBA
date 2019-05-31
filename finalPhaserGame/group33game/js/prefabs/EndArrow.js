@@ -23,6 +23,6 @@ function EndArrow(game, xPass, yPass, key/*, frame*/){
 
 EndArrow.prototype = Object.create(Phaser.Sprite.prototype);
 EndArrow.prototype.constructor = EndArrow;
-EndArrow.prototype.update = function(){ 
-	
+EndArrow.prototype.update = function(){
+		
 }
