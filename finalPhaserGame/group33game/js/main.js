@@ -18,6 +18,7 @@ var switchPool;
 var waterfall;
 var doormat;
 var fadeEffect;
+var rippleBackground;
 var playerInHouse = false;
 var CutsceneText;
 var cutsceneTime; //timer for cutscenes
@@ -44,6 +45,9 @@ var winAnim = false;
 var winAnimTimer = 0;
 var cameraScroll;
 var altEndTitle = false;
+var goodEndTitle = false;
+var cutsceneShade = 0;
+var shadeEffect;
 
 ///CLOUD FUNCTIONS
 var cloud1;
@@ -196,7 +200,8 @@ MainMenu.prototype = {
 		game.load.image('CreditButton', 'assets/img/CreditButton.png');
 		game.load.image('Select', 'assets/img/SelectIcon.png');
 		//----
-
+		game.load.image('rippleBackground', 'assets/img/rippleBackground.png');
+		game.load.image('rippleFilter', 'assets/img/rippleFilter.png');
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testRuins', 'assets/img/testRuins.png');
@@ -248,6 +253,7 @@ MainMenu.prototype = {
 	},
 	create: function() {
 		console.log('MainMenu: create');
+		cutsceneShade = 0;
 
 		if(altEndTitle == false){
 			//adds the background image to the title screen
@@ -255,12 +261,20 @@ MainMenu.prototype = {
 
 			//creates the petal falling animation and wrap
 			for (var j =0; j < 40; j++){
-				this.petalOne = new Title(game, 'Petal2');
-				game.add.existing(this.petalOne);
+				if(goodEndTitle){
+					this.petalOne = new Title(game, 'endParticle');
+					game.add.existing(this.petalOne);
 
-				this.petalTwo = new Title(game, 'Petal3');
-				game.add.existing(this.petalTwo);
+					/*this.petalTwo = new Title(game, 'endParticle');
+					game.add.existing(this.petalTwo);*/
+				}else{
+					this.petalOne = new Title(game, 'Petal2');
+					game.add.existing(this.petalOne);
 
+					this.petalTwo = new Title(game, 'Petal3');
+					game.add.existing(this.petalTwo);
+				}
+			
 				//this.Blossom = new Title(game, 'Blossom');
 				//game.add.existing(this.Blossom);
 			}
@@ -343,11 +357,7 @@ Cutscene.prototype = {
 			wrapWidth: 1000
 		}
 
-		CutsceneText = game.add.text(game.width/2, (game.height/2)-100, 
-			'Placeholder Cutscene Text\n', textStyle);
-		CutsceneText.anchor.set(0.5);
-		CutsceneText.alpha = 0;
-		CutsceneText.align = 'center';
+		
 
 		//set background colors
 		if(this.level == 1 || this.level == 2){
@@ -364,6 +374,14 @@ Cutscene.prototype = {
 		}else if(this.level == 9 || this.level == 10){
 			game.stage.backgroundColor = "#ffa791";
 		}
+
+		rippleBackground = game.add.tileSprite(0, 0, 1200, 1320, 'rippleBackground');
+
+		CutsceneText = game.add.text(game.width/2, (game.height/2)-100, 
+			'Placeholder Cutscene Text\n', textStyle);
+		CutsceneText.anchor.set(0.5);
+		CutsceneText.alpha = 0;
+		CutsceneText.align = 'center';
 
 		//game.stage.backgroundColor = "#FACADE";
 		//take cutscene text
@@ -392,10 +410,14 @@ Cutscene.prototype = {
 		}else if(this.level == 12){
 			CutsceneText.text = BufferTextAlt;
 		}
+		shadeEffect = game.add.sprite(0, 0, 'rippleFilter');
+		shadeEffect.alpha = cutsceneShade;
+		cutsceneShade += 0.05;
 		fadeEffect = game.add.sprite(0, 0, 'FadeEffect');
 		cameraScroll = 0;
 	},
 	update: function(){
+		rippleBackground.tilePosition.y += 4;
 		cutsceneTime++; //increment cutscene time
 		fadeEffect.alpha -= cameraScroll;
 		if(CutsceneText.alpha < 1){
@@ -1497,6 +1519,7 @@ Play.prototype = {
 				game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 				winAnimTimer = 0;
 				cameraScroll = 0;
+				goodEndTitle = true;
 
 			}	
 		}
