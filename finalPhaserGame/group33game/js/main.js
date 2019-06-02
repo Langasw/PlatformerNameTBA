@@ -213,7 +213,8 @@ MainMenu.prototype = {
 		game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testRuins', 'assets/img/testRuins.png');
 		game.load.image('testFinal', 'assets/img/textFinalEnd.png');
-		game.load.atlas('waterfallGraphics', 'assets/img/waterfallStates.png', 'js/json/waterfallGraphics.json');
+		game.load.atlas('waterfallGraphics', 'assets/img/WaterfallFlow.png', 'js/json/WaterfallFlow.json');
+		game.load.atlas('waterfallFrozen', 'assets/img/WaterfallFrozen.png', 'js/json/WaterfallFlow.json');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
 		game.load.image('collideTest', 'assets/img/testSprite.png');
 		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
@@ -226,19 +227,19 @@ MainMenu.prototype = {
 		game.load.image('FadeEffect', 'assets/img/FadeEffect.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
 		game.load.image('caveBackground', 'assets/img/betaCaveBGWide.png');
-		game.load.image('Bridge1', 'assets/img/Bridge1.png');
-		game.load.image('Bridge2', 'assets/img/Bridge2.png');
-		game.load.image('Bridge3', 'assets/img/Bridge3.png');
+		game.load.image('Bridge1', 'assets/img/BridgeA.png');
+		game.load.image('Bridge2', 'assets/img/BridgeB.png');
+		game.load.image('Bridge3', 'assets/img/BridgeC.png');
 		game.load.image('Cloud', 'assets/img/betaCloud.png');
 		game.load.image('deathCloudA', 'assets/img/FireLevel3.png');
 		game.load.image('deathCloudB', 'assets/img/FireLevel4A.png');
 		game.load.image('deathCloudC', 'assets/img/FireLevel4B.png');
 		game.load.image('deathCloudD', 'assets/img/FireLevel8.png');
 		game.load.image('deathHouse', 'assets/img/FireHouse.png');
-		game.load.image('house1', 'assets/img/house1.png');
-		game.load.image('house2', 'assets/img/house2.png');
-		game.load.image('house3', 'assets/img/house3.png');
-		game.load.image('houseFinal', 'assets/img/houseFinal.png');
+		game.load.image('house1', 'assets/img/house1B.png');
+		game.load.image('house2', 'assets/img/house2B.png');
+		game.load.image('house3', 'assets/img/house3B.png');
+		game.load.image('houseFinal', 'assets/img/houseFinalB.png');
 		game.load.image('doormat', 'assets/img/doormat.png');
 		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
 		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox2.json', null);
@@ -554,7 +555,9 @@ Play.prototype = {
 		if(this.level > 0 && this.level <= 8){ //between 1-8
 			//put in arena 1 BG
 			game.add.sprite(0,0, 'caveBackground');
-			waterfall = game.add.sprite(1057, 140, 'waterfallGraphics', 'waterfall');
+			waterfall = game.add.sprite(1075, 155, 'waterfallGraphics', 'WaterfallA');
+			waterfall.animations.add('flow', [0,1,2], 7, true);
+			waterfall.animations.play('flow');
 
 		}else if(this.level == 9){
 			//ruined arena
@@ -612,7 +615,7 @@ Play.prototype = {
 
 		//create bridges
 		if(this.level > 0 && this.level <= 3){ //if between levels 1 and 3, create bridge 1
-			var bridge1 = game.add.sprite(260, 735, 'Bridge1'); //leftmost bridge
+			var bridge1 = game.add.sprite(265, 725, 'Bridge1'); //leftmost bridge
 			game.physics.p2.enable(bridge1);
 			bridge1.physicsBodyType = Phaser.Physics.P2JS;
 			bridge1.body.clearShapes();
@@ -624,7 +627,7 @@ Play.prototype = {
 		if(this.level > 0 && this.level <= 5){ //if between levels 1 and 3, also create bridges 2+3
 			//create bridges
 			var bridge2 = game.add.sprite(870, 690, 'Bridge2'); //rightmost L-shape bridge
-			var bridge3 = game.add.sprite(580, 1090, 'Bridge1'); //bottom cave bridge
+			var bridge3 = game.add.sprite(545, 1085, 'Bridge3'); //bottom cave bridge
 			game.physics.p2.enable([bridge2, bridge3]);
 			bridge2.physicsBodyType = Phaser.Physics.P2JS;
 			bridge3.physicsBodyType = Phaser.Physics.P2JS;
@@ -634,7 +637,7 @@ Play.prototype = {
 			bridge2.body.addRectangle(20, 87, 30, 0); // |, x offset is 30
 
 			bridge3.body.clearShapes();
-			bridge3.body.setRectangle(170, 25);
+			bridge3.body.setRectangle(160, 25);
 
 			bridge2.body.setCollisionGroup(platform);
 			bridge2.body.collides([touchPlatform]);
@@ -988,7 +991,7 @@ Play.prototype = {
 			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
 			cloud1.body.clearShapes();
-			cloud1.body.setRectangle(140, 3);
+			cloud1.body.setRectangle(140, 40);
 			cloud1.anchor.set(0.5);
 			cloud1.body.setCollisionGroup(platform);
 			cloud1.body.collides([touchPlatform]);
@@ -1483,20 +1486,30 @@ Play.prototype = {
 			jumpOnce = 0;
 			jumpAnimOnce = 0;
 		}*/
-		
+		//waterfall.animations.play('flow');
 		if(this.cursors.down.isDown && playerInPool){ //if player is in pool when Down is pressed
 			//console.log(downPress);
 			if(waterFrozen == false && downPress == false){
 				waterFrozen = true;
-				waterfall.frame = 1;
+				//waterfall.frame = 1;
 				switchPool.frame = 0;
 				freezeSound.play();
+				var frame = waterfall.frame;
+				waterfall.animations.stop(true, true);
+				if(frame == 0){
+					waterfall.frame = 3;
+				}else if(frame == 1){
+					waterfall.frame = 4;
+				}else if(frame == 2){
+					waterfall.frame = 5;
+				}
 				downPress = true;
 			}else if(waterFrozen == true && downPress == false){
 				waterFrozen = false;
 				waterfall.frame = 0;
 				switchPool.frame = 1;
 				thawSound.play();
+				waterfall.animations.play('flow');
 				downPress = true;
 			}
 		}else{
