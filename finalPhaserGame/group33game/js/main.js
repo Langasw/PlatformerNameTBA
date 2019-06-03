@@ -55,6 +55,7 @@ var altEndTitle = false;
 var goodEndTitle = false;
 var cutsceneShade = 0;
 var shadeEffect;
+var gameSky;
 
 ///CLOUD FUNCTIONS
 var cloud1;
@@ -208,6 +209,11 @@ MainMenu.prototype = {
 		game.load.image('Select', 'assets/img/SelectIcon.png');
 		//----
 		game.load.image('rippleBackground', 'assets/img/rippleBackground.png');
+		game.load.image('Sky1', 'assets/img/Sky1.png');
+		game.load.image('Sky2', 'assets/img/Sky2.png');
+		game.load.image('Sky3', 'assets/img/Sky3.png');
+		game.load.image('Sky4', 'assets/img/Sky4.png');
+		game.load.image('Sky5', 'assets/img/Sky5.png');
 		game.load.image('rippleFilter', 'assets/img/rippleFilter.png');
 		game.load.image('creditsBackground', 'assets/img/creditsPage.png');
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
@@ -493,16 +499,18 @@ Play.prototype = {
 		//put in sunset backgrounds
 
 		if(this.level == 1 || this.level == 10){ //levels 1 and 10
-			game.stage.backgroundColor = "#A497B9";
+			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky1');
+			gameSky.fixedToCamera = true;
 		}else if(this.level == 2 || this.level == 9){//level 2 and 9
-			game.stage.backgroundColor = "#C89EC9";
+			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky2');
 		}else if(this.level == 3 || this.level == 8){ //levels 1 and 10
-			game.stage.backgroundColor = "#E2AABD";
+			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky3');
 		}else if(this.level == 4 || this.level == 7){//level 2 and 9
-			game.stage.backgroundColor = "#F1BCB3";
+			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky4');
 		}else if(this.level == 5 || this.level == 6){ //levels 1 and 10
-			game.stage.backgroundColor = "#EFCDC7";
+			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky5');
 		}
+
 		
 		//game.stage.backgroundColor = "#da9986";
 
@@ -1368,6 +1376,8 @@ Play.prototype = {
 		var playerVelocity = 200; //CHANGE PLAYER VELOCITY HERE
 		//create keyboard
 		this.cursors = game.input.keyboard.createCursorKeys();
+		gameSky.tilePosition.x += 1.3;
+		//gameSky.tilePosition.y -= 0.3;
 
 		//reset player velocity
 		player.body.velocity.x = 0; //start by reseting velocity to zero
