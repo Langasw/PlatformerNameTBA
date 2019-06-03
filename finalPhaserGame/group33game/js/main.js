@@ -8,7 +8,7 @@ var game = new Phaser.Game(1200, 1320, Phaser.AUTO);
 var player;
 //var platform; //group for platformable objects (bridges, clouds, background)
 //var touchPlatform; //group for objects that have collission with objects (player)
-var currentLevel = 8;
+var currentLevel = 1;
 var arena;
 var endArrow;
 var waterfallPlatform;
@@ -243,7 +243,7 @@ MainMenu.prototype = {
 		game.load.image('Bridge1', 'assets/img/BridgeA.png');
 		game.load.image('Bridge2', 'assets/img/BridgeB.png');
 		game.load.image('Bridge3', 'assets/img/BridgeC.png');
-		game.load.image('Cloud', 'assets/img/betaCloud.png');
+		game.load.image('Cloud', 'assets/img/Cloud.png');
 		game.load.atlas('deathCloudLongA', 'assets/img/FlameLongA.png', 'js/json/FlameLongA.json');
 		game.load.atlas('deathCloudLongB', 'assets/img/FlameLongB.png', 'js/json/FlameLongB.json');
 		game.load.atlas('deathCloudWideA', 'assets/img/FlameWideA.png', 'js/json/FlameWideA.json');
@@ -1144,7 +1144,7 @@ Play.prototype = {
 			cloud1.body.kinematic = true;
 
 			var deathCloud1 = game.add.sprite(1043, 545, 'deathCloudWideB', 0);
-			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,3,2,1], 15, true);
+			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,4,2,1], 15, true);
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
 			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
