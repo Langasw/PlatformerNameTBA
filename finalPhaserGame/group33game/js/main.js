@@ -249,7 +249,8 @@ MainMenu.prototype = {
 		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
 		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox2.json', null);
 		game.load.physics('finalHitbox', 'js/json/level10Hitbox.json', null);
-		game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
+		//game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
+		game.load.atlas('poolSwitch', 'assets/img/switchAnimation.png', 'js/json/switchAnimation.json');
 		game.load.physics('housePhysics', 'js/json/houseHitbox.json', null);
 		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
 
@@ -1188,7 +1189,8 @@ Play.prototype = {
 		game.physics.p2.enable(wheel); //enable physics
 		wheel.physicsBodyType = Phaser.Physics.P2JS;*/
 		
-		switchPool = game.add.sprite(705, 1080, 'poolSwitch', 'waterPool');
+		switchPool = game.add.sprite(705, 1082, 'poolSwitch', 0);
+		switchPool.animations.add('normal', [0,0,1,2,2,1], 8, true);
 		switchPool.enableBody = true;
 		game.physics.p2.enable(switchPool); //enable physics
 		switchPool.physicsBodyType = Phaser.Physics.P2JS;
@@ -1200,6 +1202,7 @@ Play.prototype = {
 		switchPool.body.collides([touchPlatform],/* inPool, this*/);
 		switchPool.body.onBeginContact.add(inPool, this);
 		switchPool.body.onEndContact.add(outPool, this);
+		switchPool.play('normal');
 
 		waterFrozen = false;
 
@@ -1544,13 +1547,22 @@ Play.prototype = {
 				switchPool.frame = 0;
 				freezeSound.play();
 				var frame = waterfall.frame;
+				var frameP = switchPool.frame;
 				waterfall.animations.stop(true, true);
+				switchPool.animations.stop(true, true);
 				if(frame == 0){
 					waterfall.frame = 3;
 				}else if(frame == 1){
 					waterfall.frame = 4;
 				}else if(frame == 2){
 					waterfall.frame = 5;
+				}
+				if(frameP == 0){
+					switchPool.frame = 3;
+				}else if(frameP == 1){
+					switchPool.frame = 4;
+				}else if(frameP == 2){
+					switchPool.frame = 5;
 				}
 				downPress = true;
 			}else if(waterFrozen == true && downPress == false){
@@ -1559,6 +1571,7 @@ Play.prototype = {
 				switchPool.frame = 1;
 				thawSound.play();
 				waterfall.animations.play('flow');
+				switchPool.animations.play('normal');
 				downPress = true;
 			}
 		}else{
