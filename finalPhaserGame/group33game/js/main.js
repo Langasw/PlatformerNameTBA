@@ -17,6 +17,7 @@ var waterfallCurrentUpward;
 var switchPool;
 var waterfall;
 var doormat;
+var wheel;
 var jumpTimer = 0;
 var defaultJumpVelocity = -180;
 var jumpVelocity = defaultJumpVelocity;
@@ -217,7 +218,8 @@ MainMenu.prototype = {
 		game.load.atlas('waterfallFrozen', 'assets/img/WaterfallFrozen.png', 'js/json/WaterfallFlow.json');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
 		game.load.image('collideTest', 'assets/img/testSprite.png');
-		game.load.image('wheelPlatform', 'assets/img/betaWheelPlatform.png');
+		game.load.image('wheelPlatform', 'assets/img/WheelPlatform.png');
+		game.load.image('wheel', 'assets/img/WheelPart.png')
 		game.load.image('betaArrow', 'assets/img/betaArrow.png');
 		game.load.image('endPetal', 'assets/img/endPetal.png');
 		game.load.image('endParticle', 'assets/img/endParticle.png');
@@ -1145,6 +1147,12 @@ Play.prototype = {
 		waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
 		waterfallPlatform.body.setCollisionGroup(platform); 
 		waterfallPlatform.body.collides([touchPlatform]);
+
+		wheel = game.add.sprite(1095, waterfallY, 'wheel');
+		wheel.anchor.set(0.5);
+		/*wheel.enableBody = true;
+		game.physics.p2.enable(wheel); //enable physics
+		wheel.physicsBodyType = Phaser.Physics.P2JS;*/
 		
 		switchPool = game.add.sprite(705, 1080, 'poolSwitch', 'waterPool');
 		switchPool.enableBody = true;
@@ -1179,6 +1187,7 @@ Play.prototype = {
 		//kill waterfall platform levels 9-10
 		if(this.level >= 9){ //level 9 or 10
 			waterfallPlatform.kill();
+			wheel.kill();
 			switchPool.kill();
 			doormat.kill();
 		}
@@ -1359,11 +1368,17 @@ Play.prototype = {
 		waterfallCurrentUpward = upward;
 		if(waterFrozen == false && upward == 0){
 			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
+			wheel.angle += 1
+			//wheel.body.velocity.y = -1 * platformSpeed; //go upward
 		}else if(waterFrozen == false && upward == 1){
 			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
+			wheel.angle -= 1
+			//wheel.body.velocity.y = platformSpeed; //go upward
 		}else if(waterFrozen == true){
 			waterfallPlatform.body.velocity.y = 0;
+			//wheel.body.velocity.y = 0; //go upward
 		}
+
 
 		//general movement of cloud 1
 		if(cloud1Exist){
@@ -1562,7 +1577,7 @@ Play.prototype = {
 		}else if(jumpOnce == 1){
 			game.stage.backgroundColor = "#666600";
 		}*/
-		
+		wheel.y = waterfallPlatform.body.y;
 			
 	},
 	render: function(){
