@@ -8,7 +8,7 @@ var game = new Phaser.Game(1200, 1320, Phaser.AUTO);
 var player;
 //var platform; //group for platformable objects (bridges, clouds, background)
 //var touchPlatform; //group for objects that have collission with objects (player)
-var currentLevel = 1;
+var currentLevel = 8;
 var arena;
 var endArrow;
 var waterfallPlatform;
@@ -244,10 +244,14 @@ MainMenu.prototype = {
 		game.load.image('Bridge2', 'assets/img/BridgeB.png');
 		game.load.image('Bridge3', 'assets/img/BridgeC.png');
 		game.load.image('Cloud', 'assets/img/betaCloud.png');
-		game.load.image('deathCloudA', 'assets/img/FireLevel3.png');
+		game.load.atlas('deathCloudLongA', 'assets/img/FlameLongA.png', 'js/json/FlameLongA.json');
+		game.load.atlas('deathCloudLongB', 'assets/img/FlameLongB.png', 'js/json/FlameLongB.json');
+		game.load.atlas('deathCloudWideA', 'assets/img/FlameWideA.png', 'js/json/FlameWideA.json');
+		game.load.atlas('deathCloudWideB', 'assets/img/FlameWideB.png', 'js/json/FlameWideB.json');
+		/*game.load.image('deathCloudA', 'assets/img/FireLevel3.png');
 		game.load.image('deathCloudB', 'assets/img/FireLevel4A.png');
-		game.load.image('deathCloudC', 'assets/img/FireLevel4B.png');
-		game.load.image('deathCloudD', 'assets/img/FireLevel8.png');
+		game.load.image('deathCloudC', 'assets/img/FireLevel4B.png');*/
+		//game.load.image('deathCloudD', 'assets/img/FireLevel8.png');
 		game.load.image('deathHouse', 'assets/img/FireHouse.png');
 		game.load.image('house1', 'assets/img/house1B.png');
 		game.load.image('house2', 'assets/img/house2B.png');
@@ -465,7 +469,7 @@ Cutscene.prototype = {
 				}*/
 			}else{
 				currentLevel = 1;
-				windNoise.destroy();
+				//windNoise.destroy();
 				game.state.start('MainMenu', true, false, this.level);
 			}
 			
@@ -838,7 +842,8 @@ Play.prototype = {
 			cloudH.body.kinematic = true;
 			cloudH.body.velocity.x = 170;
 
-			var deathCloud1 = game.add.sprite(775, 580, 'deathCloudA');
+			var deathCloud1 = game.add.sprite(775, 580, 'deathCloudLongA', 0);
+			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,4,3,2,1], 15, true);
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
 			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -849,7 +854,8 @@ Play.prototype = {
 			deathCloud1.body.kinematic = true;
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
-			var deathCloud2 = game.add.sprite(750, 960, 'deathCloudA');
+			var deathCloud2 = game.add.sprite(750, 960, 'deathCloudLongA', 0);
+			deathCloud2.animations.add('normal', [0,0,0,1,2,3,4,4,3,2,1], 15, true);
 			deathCloud2.enableBody = true;
 			game.physics.p2.enable(deathCloud2);
 			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -859,6 +865,9 @@ Play.prototype = {
 			deathCloud2.body.collides([touchPlatform]);
 			deathCloud2.body.kinematic = true;
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
+
+			deathCloud1.play('normal');
+			deathCloud2.play('normal');
 
 			//set waterfall platform prefabs
 			platformSpeed = 80;
@@ -915,7 +924,8 @@ Play.prototype = {
 			cloud2.body.kinematic = true;
 
 
-			var deathCloud1 = game.add.sprite(1030, 705, 'deathCloudB');
+			var deathCloud1 = game.add.sprite(1030, 705, 'deathCloudWideA', 0);
+			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,3,2,1], 15, true);
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
 			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -926,7 +936,8 @@ Play.prototype = {
 			deathCloud1.body.kinematic = true;
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
-			var deathCloud2 = game.add.sprite(830, 250, 'deathCloudC');
+			var deathCloud2 = game.add.sprite(830, 250, 'deathCloudLongB', 0);
+			deathCloud2.animations.add('normal', [0,0,1,2,2,3,4,4,3,3,2,1], 15, true);
 			deathCloud2.enableBody = true;
 			game.physics.p2.enable(deathCloud2);
 			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -936,6 +947,9 @@ Play.prototype = {
 			deathCloud2.body.collides([touchPlatform]);
 			deathCloud2.body.kinematic = true;
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
+
+			deathCloud1.play('normal');
+			deathCloud2.play('normal');
 
 			//set waterfall platform prefabs
 			platformSpeed = 210;
@@ -999,7 +1013,8 @@ Play.prototype = {
 			cloud1.body.collides([touchPlatform]);
 			cloud1.body.kinematic = true;
 
-			var deathCloud2 = game.add.sprite(380, 460, 'deathCloudC');
+			var deathCloud2 = game.add.sprite(380, 460, 'deathCloudLongB', 0);
+			deathCloud2.animations.add('normal', [0,0,1,2,2,3,4,4,3,3,2,1], 15, true);
 			deathCloud2.enableBody = true;
 			game.physics.p2.enable(deathCloud2);
 			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -1009,6 +1024,8 @@ Play.prototype = {
 			deathCloud2.body.collides([touchPlatform]);
 			deathCloud2.body.kinematic = true;
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
+
+			deathCloud2.animations.play('normal');
 
 			//set waterfall platform prefabs
 			platformSpeed = 150;
@@ -1066,7 +1083,8 @@ Play.prototype = {
 			cloud2.body.collides([touchPlatform]);
 			cloud2.body.kinematic = true;
 
-			var deathCloud1 = game.add.sprite(1020, 705, 'deathCloudB');
+			var deathCloud1 = game.add.sprite(1020, 705, 'deathCloudWideA');
+			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,3,2,1], 15, true);
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
 			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -1077,7 +1095,8 @@ Play.prototype = {
 			deathCloud1.body.kinematic = true;
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
-			var deathCloud2 = game.add.sprite(565, 110, 'deathCloudB'); //change this later to be on top of the chimney
+			var deathCloud2 = game.add.sprite(565, 110, 'deathCloudWideA'); //change this later to be on top of the chimney
+			deathCloud2.animations.add('normal', [0,0,0,1,2,3,4,3,2,1], 15, true);
 			deathCloud2.enableBody = true;
 			game.physics.p2.enable(deathCloud2);
 			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -1087,6 +1106,9 @@ Play.prototype = {
 			deathCloud2.body.collides([touchPlatform]);
 			deathCloud2.body.kinematic = true;
 			deathCloud2.body.onBeginContact.add(killPlayer, this);
+
+			deathCloud1.animations.play('normal');
+			deathCloud2.animations.play('normal');
 
 			//set waterfall platform prefabs
 			platformSpeed = 390;
@@ -1121,7 +1143,8 @@ Play.prototype = {
 			cloud1.body.collides([touchPlatform]);
 			cloud1.body.kinematic = true;
 
-			var deathCloud1 = game.add.sprite(1043, 545, 'deathCloudD');
+			var deathCloud1 = game.add.sprite(1043, 545, 'deathCloudWideB', 0);
+			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,3,2,1], 15, true);
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
 			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -1131,6 +1154,8 @@ Play.prototype = {
 			deathCloud1.body.collides([touchPlatform]);
 			deathCloud1.body.kinematic = true;
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
+
+			deathCloud1.play('normal');
 
 			//set waterfall platform prefabs
 			platformSpeed = 140;
