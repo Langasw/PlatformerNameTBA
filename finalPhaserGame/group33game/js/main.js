@@ -222,6 +222,9 @@ MainMenu.prototype = {
 		game.load.image('wheel', 'assets/img/WheelPart.png')
 		game.load.image('betaArrow', 'assets/img/betaArrow.png');
 		game.load.image('endPetal', 'assets/img/endPetal.png');
+		game.load.image('seed', 'assets/img/FlowerBud.png');
+		game.load.image('sprout', 'assets/img/FlowerYouth.png');
+		game.load.atlas('flowers', 'assets/img/flowers.png', 'js/json/flowers.json');
 		game.load.image('endParticle', 'assets/img/endParticle.png');
 		game.load.image('smokeCloud', 'assets/img/chimneySmoke.png');
 		game.load.image('deathPetal', 'assets/img/deathPetal.png');
@@ -615,6 +618,8 @@ Play.prototype = {
 			deathHouse.body.onBeginContact.add(killPlayer, this);
 		}
 
+		
+
 		//create bridges
 		if(this.level > 0 && this.level <= 3){ //if between levels 1 and 3, create bridge 1
 			var bridge1 = game.add.sprite(265, 725, 'Bridge1'); //leftmost bridge
@@ -696,6 +701,35 @@ Play.prototype = {
 
 		
 		platformSpeed = 120;
+
+		//set up flowers
+		if(this.level <= 3){
+			game.add.sprite(100, 260, 'seed');
+			game.add.sprite(160, 260, 'seed');
+			game.add.sprite(220, 260, 'seed');
+
+		}else if(this.level == 4 || this.level == 5 || this.level == 10){
+			game.add.sprite(100, 228, 'sprout');
+			game.add.sprite(160, 228, 'sprout');
+			game.add.sprite(220, 228, 'sprout');
+
+		}else if(this.level == 6 || this.level == 7 || this.level == 8){
+			var flowers1 = game.add.sprite(80, 195, 'flowers', 0);
+			var flowers2 = game.add.sprite(140, 195, 'flowers', 0);
+			var flowers3 = game.add.sprite(200, 195, 'flowers', 0);
+			flowers1.animations.add('bounce', [0,1,2,3], 3, true);
+			flowers2.animations.add('bounce', [0,1,2,3], 3, true);
+			flowers3.animations.add('bounce', [0,1,2,3], 3, true);
+			flowers1.animations.play('bounce');
+			flowers2.animations.play('bounce');
+			flowers3.animations.play('bounce');
+
+		}else if(this.level == 9){
+			game.add.sprite(100, 510, 'seed');
+			game.add.sprite(160, 510, 'seed');
+			game.add.sprite(220, 510, 'seed');
+		}
+
 
 		//LEVEL SPECIFIC TOOLS
 
@@ -1368,11 +1402,11 @@ Play.prototype = {
 		waterfallCurrentUpward = upward;
 		if(waterFrozen == false && upward == 0){
 			waterfallPlatform.body.velocity.y = -1 * platformSpeed; //go upward
-			wheel.angle += 1
+			wheel.angle += platformSpeed/100;
 			//wheel.body.velocity.y = -1 * platformSpeed; //go upward
 		}else if(waterFrozen == false && upward == 1){
 			waterfallPlatform.body.velocity.y = platformSpeed; //go downward
-			wheel.angle -= 1
+			wheel.angle -= platformSpeed/100;
 			//wheel.body.velocity.y = platformSpeed; //go upward
 		}else if(waterFrozen == true){
 			waterfallPlatform.body.velocity.y = 0;
