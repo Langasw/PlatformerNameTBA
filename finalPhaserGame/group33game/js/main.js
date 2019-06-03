@@ -217,7 +217,8 @@ MainMenu.prototype = {
 		game.load.image('rippleFilter', 'assets/img/rippleFilter.png');
 		game.load.image('creditsBackground', 'assets/img/creditsPage.png');
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
-		game.load.image('testArena', 'assets/img/testArenaWide.png');
+		//game.load.image('testArena', 'assets/img/testArenaWide.png');
+		game.load.image('testArena', 'assets/img/mainArena2.png');
 		game.load.image('testRuins', 'assets/img/testRuins.png');
 		game.load.image('testFinal', 'assets/img/textFinalEnd.png');
 		game.load.atlas('waterfallGraphics', 'assets/img/WaterfallFlow.png', 'js/json/WaterfallFlow.json');
@@ -238,6 +239,7 @@ MainMenu.prototype = {
 		game.load.image('FadeEffect', 'assets/img/FadeEffect.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
 		game.load.image('caveBackground', 'assets/img/betaCaveBGWide.png');
+		game.load.image('mainBackground', 'assets/img/mainBackground.png');
 		game.load.image('Bridge1', 'assets/img/BridgeA.png');
 		game.load.image('Bridge2', 'assets/img/BridgeB.png');
 		game.load.image('Bridge3', 'assets/img/BridgeC.png');
@@ -499,16 +501,16 @@ Play.prototype = {
 		//put in sunset backgrounds
 
 		if(this.level == 1 || this.level == 10){ //levels 1 and 10
-			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky1');
+			gameSky = game.add.tileSprite(0, 0, 1250, 1330, 'Sky1');
 			gameSky.fixedToCamera = true;
 		}else if(this.level == 2 || this.level == 9){//level 2 and 9
-			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky2');
+			gameSky = game.add.tileSprite(0, 0, 1250, 1330, 'Sky2');
 		}else if(this.level == 3 || this.level == 8){ //levels 1 and 10
-			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky3');
+			gameSky = game.add.tileSprite(0, 0, 1250, 1330, 'Sky3');
 		}else if(this.level == 4 || this.level == 7){//level 2 and 9
-			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky4');
+			gameSky = game.add.tileSprite(0, 0, 1250, 1330, 'Sky4');
 		}else if(this.level == 5 || this.level == 6){ //levels 1 and 10
-			gameSky = game.add.tileSprite(0, 0, 1200, 1320, 'Sky5');
+			gameSky = game.add.tileSprite(0, 0, 1250, 1330, 'Sky5');
 		}
 
 		
@@ -568,7 +570,7 @@ Play.prototype = {
 		//set up the proper backgrounds
 		if(this.level > 0 && this.level <= 8){ //between 1-8
 			//put in arena 1 BG
-			game.add.sprite(0,0, 'caveBackground');
+			game.add.sprite(0,0, 'mainBackground');
 			waterfall = game.add.sprite(1075, 155, 'waterfallGraphics', 'WaterfallA');
 			waterfall.animations.add('flow', [0,1,2], 7, true);
 			waterfall.animations.play('flow');
@@ -713,19 +715,19 @@ Play.prototype = {
 
 		//set up flowers
 		if(this.level <= 3){
-			game.add.sprite(100, 260, 'seed');
+			game.add.sprite(100, 260-10, 'seed');
 			game.add.sprite(160, 260, 'seed');
-			game.add.sprite(220, 260, 'seed');
+			game.add.sprite(220, 260-5, 'seed');
 
 		}else if(this.level == 4 || this.level == 5 || this.level == 10){
-			game.add.sprite(100, 228, 'sprout');
+			game.add.sprite(100, 228-10, 'sprout');
 			game.add.sprite(160, 228, 'sprout');
-			game.add.sprite(220, 228, 'sprout');
+			game.add.sprite(220, 228-5, 'sprout');
 
 		}else if(this.level == 6 || this.level == 7 || this.level == 8){
-			var flowers1 = game.add.sprite(80, 195, 'flowers', 0);
+			var flowers1 = game.add.sprite(80, 195-10, 'flowers', 0);
 			var flowers2 = game.add.sprite(140, 195, 'flowers', 0);
-			var flowers3 = game.add.sprite(200, 195, 'flowers', 0);
+			var flowers3 = game.add.sprite(200, 195-5, 'flowers', 0);
 			flowers1.animations.add('bounce', [0,1,2,3], 3, true);
 			flowers2.animations.add('bounce', [0,1,2,3], 3, true);
 			flowers3.animations.add('bounce', [0,1,2,3], 3, true);
