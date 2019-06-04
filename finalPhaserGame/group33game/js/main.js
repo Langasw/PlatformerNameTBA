@@ -15,6 +15,7 @@ var waterfallPlatform;
 var waterfallCurrentY;
 var waterfallCurrentUpward;
 var switchPool;
+var offPlatform = 0;
 var waterfall;
 var doormat;
 var wheel;
@@ -258,7 +259,7 @@ MainMenu.prototype = {
 		game.load.image('house3', 'assets/img/house3B.png');
 		game.load.image('houseFinal', 'assets/img/houseFinalB.png');
 		game.load.image('doormat', 'assets/img/doormat.png');
-		game.load.physics('stageHitboxWide', 'js/json/stageWide1200.json', null);
+		game.load.physics('mainStageCollide', 'js/json/MainArenaCollide2.json', null);
 		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox2.json', null);
 		game.load.physics('finalHitbox', 'js/json/level10Hitbox.json', null);
 		//game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
@@ -525,7 +526,7 @@ Play.prototype = {
 		var cloudHorizontal = game.add.group();*/
 
 		//set up base variables
-		var playerStartY = 390;
+		var playerStartY = 420;
 		var arrowStartY = 90;
 
 		game.world.setBounds(0, 0, 3000, 1320);
@@ -679,6 +680,12 @@ Play.prototype = {
 			game.add.existing(arena);
 			arena.enableBody = true;
 			arena.physicsBodyType = Phaser.Physics.P2JS;
+			arena.body.loadPolygon('mainStageCollide', 'leftLedge');
+			arena.body.loadPolygon('mainStageCollide', 'housePlatform');
+			arena.body.loadPolygon('mainStageCollide', 'leftCave');
+			arena.body.loadPolygon('mainStageCollide', 'rightCave');
+			arena.body.loadPolygon('mainStageCollide', 'waterfallLedge');
+			arena.body.loadPolygon('mainStageCollide', 'gardenLedge');
 			arena.body.setCollisionGroup(platform);
 			arena.body.collides([touchPlatform]);
 			arena.body.immovable = true;
@@ -694,6 +701,8 @@ Play.prototype = {
 			game.add.existing(arena);
 			arena.enableBody = true;
 			arena.physicsBodyType = Phaser.Physics.P2JS;
+			arena.body.loadPolygon('ruinsHitbox', 'garden');
+			arena.body.loadPolygon('ruinsHitbox', 'ruinsHitbox');
 			arena.body.setCollisionGroup(platform);
 			arena.body.collides([touchPlatform]);
 			arena.body.immovable = true;
@@ -704,8 +713,11 @@ Play.prototype = {
 			arena = new Arena(game, 900, (game.height)/2, 'testFinal', this.level);
 			game.add.existing(arena);
 			arena.enableBody = true;
-			//arena.anchor.set(0);
+			arena.anchor.set(0);
 			arena.physicsBodyType = Phaser.Physics.P2JS;
+			arena.body.loadPolygon('finalHitbox', 'stage10Ledge');
+			arena.body.loadPolygon('finalHitbox', 'stage10Cliff');
+			arena.body.loadPolygon('finalHitbox', 'stage10cave');
 			arena.body.setCollisionGroup(platform);
 			arena.body.collides([touchPlatform]);
 			arena.body.immovable = true;
@@ -925,7 +937,7 @@ Play.prototype = {
 
 
 			var deathCloud1 = game.add.sprite(1030, 705, 'deathCloudWideA', 0);
-			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,3,2,1], 15, true);
+			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,4,3,2,1], 15, true);
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
 			deathCloud1.physicsBodyType = Phaser.Physics.P2JS;
@@ -937,7 +949,7 @@ Play.prototype = {
 			deathCloud1.body.onBeginContact.add(killPlayer, this);
 
 			var deathCloud2 = game.add.sprite(830, 250, 'deathCloudLongB', 0);
-			deathCloud2.animations.add('normal', [0,0,1,2,2,3,4,4,3,3,2,1], 15, true);
+			deathCloud2.animations.add('normal', [0,0,1,2,2,3,4,4,4,3,3,2,1], 15, true);
 			deathCloud2.enableBody = true;
 			game.physics.p2.enable(deathCloud2);
 			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -1014,7 +1026,7 @@ Play.prototype = {
 			cloud1.body.kinematic = true;
 
 			var deathCloud2 = game.add.sprite(380, 460, 'deathCloudLongB', 0);
-			deathCloud2.animations.add('normal', [0,0,1,2,2,3,4,4,3,3,2,1], 15, true);
+			deathCloud2.animations.add('normal', [0,0,1,2,2,3,4,4,4,3,3,2,1], 15, true);
 			deathCloud2.enableBody = true;
 			game.physics.p2.enable(deathCloud2);
 			deathCloud2.physicsBodyType = Phaser.Physics.P2JS;
@@ -1300,6 +1312,8 @@ Play.prototype = {
 			//this is where landing animation should go, for only a few frames
 			//console.log('refreshing');
 			jumpOnce = true;
+			offPlatform = 0;
+			//onPlatform = true;
 			jumpVelocity = defaultJumpVelocity;
 			jumpTimer = 0;
 			followJump = false;
@@ -1311,6 +1325,7 @@ Play.prototype = {
 			//this is where landing animation should go, for only a few frames
 			//console.log('refreshing');
 			jumpOnce = false;
+			//onPlatform = false;
 			//player.animations.play('landing');
 		}
 
@@ -1527,6 +1542,10 @@ Play.prototype = {
 			//jumpOnce = 0;
 		}
 
+		if(jumpOnce == false){
+			offPlatform++;
+		}
+
 		//horizontal movement for player
 		if (this.cursors.left.isDown){ 	//if left key is pressed
 			//move left
@@ -1559,7 +1578,7 @@ Play.prototype = {
 			}
 
 			jumpAnimOnce = 1;
-		}else if(jumpOnce == false){
+		}else if(jumpOnce == false && offPlatform > 10){
 			player.animations.play('falling');
 		}else{
 			//horizontal movement

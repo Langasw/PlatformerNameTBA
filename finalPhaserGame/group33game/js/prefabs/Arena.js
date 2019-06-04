@@ -6,23 +6,15 @@ function Arena(game, xPass, yPass, key, level/*, frame*/){
 	Phaser.Sprite.call(this, game, xPass, yPass, key/*, frame*/); 
 	//add properties
 	this.anchor.set(0,0); //anchor at center
-	game.physics.p2.enable(this); //enable physics
+	game.physics.p2.enable(this, true); //enable physics
 	this.body.clearShapes();
 	//load body
 	if(level <= 8){
-		this.body.loadPolygon('stageHitboxWide', 'lowerCliff');
-		this.body.loadPolygon('stageHitboxWide', 'housePlatform');
-		this.body.loadPolygon('stageHitboxWide', 'caveLeft');
-		this.body.loadPolygon('stageHitboxWide', 'caveRight');
-		this.body.loadPolygon('stageHitboxWide', 'waterFall');
-		this.body.loadPolygon('stageHitboxWide', 'garden');
+		
 	}else if(level == 9){
-		this.body.loadPolygon('ruinsHitbox', 'garden');
-		this.body.loadPolygon('ruinsHitbox', 'ruinsHitbox');
+		
 	}else if(level == 10){
-		this.body.loadPolygon('finalHitbox', 'stage10Ledge');
-		this.body.loadPolygon('finalHitbox', 'stage10Cliff');
-		this.body.loadPolygon('finalHitbox', 'stage10cave');
+		
 	}
 	
 

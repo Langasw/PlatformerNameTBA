@@ -6,7 +6,7 @@ function Player(game, xPass, yPass, key, frame){
 	Phaser.Sprite.call(this, game, xPass, yPass, key, frame); 
 	//add properties
 	this.anchor.set(0.5); //anchor at center
-	game.physics.p2.enable(this); //enable physics
+	game.physics.p2.enable(this, true); //enable physics
 	//this.enableBody = true; //enable body
 	this.body.setRectangle(40*0.8, 133*0.8); //0.8 is scale
 	game.physics.p2.gravity.y = 600; //enable gravity (CHANGE GRAVITY HERE)
