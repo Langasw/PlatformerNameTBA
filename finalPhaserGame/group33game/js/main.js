@@ -12,14 +12,17 @@ var currentLevel = 1;
 var arena;
 var endArrow;
 var waterfallPlatform;
+var waterfallPlatformJump;
 var waterfallCurrentY;
 var waterfallCurrentUpward;
+var upWait = 0;
 var switchPool;
 var offPlatform = 0;
 var waterfall;
 var doormat;
 var wheel;
 var jumpTimer = 0;
+var jumpHitbox;
 var defaultJumpVelocity = -180;
 var jumpVelocity = defaultJumpVelocity;
 var followJump = false;
@@ -36,7 +39,7 @@ var lowY; //lowest y point of the waterfall platform in the stage
 var highY; //highest y point of the waterfall platform in the stage
 var direction = 1; //1 for left, 0 for right
 var jumpAnimOnce = 0;
-var jumpOnce = true;
+var jumpOnce = false;
 var testTimer = 0;
 var jumpNoise;
 var deathFallNoise;
@@ -254,6 +257,7 @@ MainMenu.prototype = {
 		game.load.image('deathCloudC', 'assets/img/FireLevel4B.png');*/
 		//game.load.image('deathCloudD', 'assets/img/FireLevel8.png');
 		game.load.image('deathHouse', 'assets/img/FireHouse.png');
+		game.load.image('jumpHitbox', 'assets/img/jumpHitbox.png')
 		game.load.image('house1', 'assets/img/house1B.png');
 		game.load.image('house2', 'assets/img/house2B.png');
 		game.load.image('house3', 'assets/img/house3B.png');
@@ -639,7 +643,7 @@ Play.prototype = {
 		//create bridges
 		if(this.level > 0 && this.level <= 3){ //if between levels 1 and 3, create bridge 1
 			var bridge1 = game.add.sprite(265, 725, 'Bridge1'); //leftmost bridge
-			game.physics.p2.enable(bridge1);
+			game.physics.p2.enable(bridge1, this);
 			bridge1.physicsBodyType = Phaser.Physics.P2JS;
 			bridge1.body.clearShapes();
 			bridge1.body.setRectangle(230, 30);
@@ -651,13 +655,13 @@ Play.prototype = {
 			//create bridges
 			var bridge2 = game.add.sprite(870, 690, 'Bridge2'); //rightmost L-shape bridge
 			var bridge3 = game.add.sprite(545, 1085, 'Bridge3'); //bottom cave bridge
-			game.physics.p2.enable([bridge2, bridge3]);
+			game.physics.p2.enable([bridge2, bridge3], this);
 			bridge2.physicsBodyType = Phaser.Physics.P2JS;
 			bridge3.physicsBodyType = Phaser.Physics.P2JS;
 
 			bridge2.body.clearShapes();
 			bridge2.body.addRectangle(100, 17, 0, 40);//__, y offset is 40
-			bridge2.body.addRectangle(20, 87, 30, 0); // |, x offset is 30
+			bridge2.body.addRectangle(20, 87, 40, 0); // |, x offset is 30
 
 			bridge3.body.clearShapes();
 			bridge3.body.setRectangle(160, 25);
@@ -1212,8 +1216,21 @@ Play.prototype = {
 		player.enableBody = true; 
 		player.body.setCollisionGroup(touchPlatform);
 		player.body.collides([platform/*, collectable*/], /*refreshJump, this*/);
-		player.body.onBeginContact.add(refreshJump, this);
-		player.body.onEndContact.add(deleteJump, this);
+		/*player.body.onBeginContact.add(refreshJump, this);
+		player.body.onEndContact.add(deleteJump, this);*/
+
+		jumpHitbox = game.add.sprite(100, playerStartY, 'jumpHitbox');
+		jumpHitbox.enableBody = true; 
+		jumpHitbox.anchor.set(0.5); //anchor at center
+		game.physics.p2.enable(jumpHitbox, true); //enable physics
+		jumpHitbox.body.setZeroDamping();
+		jumpHitbox.body.fixedRotation = true;
+		jumpHitbox.body.setCollisionGroup(touchPlatform);
+		jumpHitbox.body.gravity = 0;
+		jumpHitbox.body.collides([platform/*, collectable*/], /*refreshJump, this*/);
+		jumpHitbox.body.onBeginContact.add(refreshJump, this);
+		jumpHitbox.body.onEndContact.add(deleteJump, this);
+
 
 		//create waterfall platform
 		var waterfallY;
@@ -1229,6 +1246,14 @@ Play.prototype = {
 		waterfallPlatform.physicsBodyType = Phaser.Physics.P2JS;
 		waterfallPlatform.body.setCollisionGroup(platform); 
 		waterfallPlatform.body.collides([touchPlatform]);
+
+		/*waterfallPlatformJump = new Phaser.Rectangle(110,8);
+		waterfallPlatformJump.enableBody = true;
+		waterfallPlatformJump.physicsBodyType = Phaser.Physics.P2JS;
+		game.physics.p2.enable(waterfallPlatformJump, this); //enable physics
+		waterfallPlatformJump.anchor.set(0.5, 1);
+		waterfallPlatformJump.body.clearShapes();
+		waterfallPlatformJump.body.setRectangle(110,8);*/
 
 		wheel = game.add.sprite(1095, waterfallY, 'wheel');
 		wheel.anchor.set(0.5);
@@ -1410,7 +1435,7 @@ Play.prototype = {
 		fadeEffect.fixedToCamera = true;
 		fadeEffect.alpha = 0;
 
-		
+		upWait = 0;
 
 	},
 	update: function(){
@@ -1525,7 +1550,7 @@ Play.prototype = {
 
 
 		//jumping movement
-		if(this.cursors.up.isDown){
+		if(this.cursors.up.isDown  && upWait >= 30){
 			if(jumpOnce == true){
 				player.body.velocity.y = defaultJumpVelocity;
 				jumpNoise.play(); //play jump sound
@@ -1534,7 +1559,7 @@ Play.prototype = {
 			if(jumpTimer < 15 && followJump){
 				player.body.velocity.y = jumpVelocity; //jump
 			}
-			jumpVelocity -= 10;
+			jumpVelocity -= 12;
 			jumpTimer++;
 			
 			//jumpOnce = false;
@@ -1569,6 +1594,10 @@ Play.prototype = {
 			//stay still
 			//player.animations.play('still');
 		}
+
+		//jumphitbox
+		jumpHitbox.body.x = player.body.x;
+		jumpHitbox.body.y = player.body.y+50;
 
 		//animation control
 		if(this.cursors.up.isDown && followJump == true && jumpOnce == false){ //upward movement
@@ -1681,6 +1710,10 @@ Play.prototype = {
 			game.stage.backgroundColor = "#666600";
 		}*/
 		wheel.y = waterfallPlatform.body.y;
+		/*if(upWait < 20){
+			upWait++;
+		}*/
+		upWait++;
 			
 	},
 	render: function(){
