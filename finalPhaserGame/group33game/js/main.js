@@ -264,6 +264,7 @@ MainMenu.prototype = {
 		game.load.image('houseFinal', 'assets/img/houseFinalB.png');
 		game.load.image('doormat', 'assets/img/doormat.png');
 		game.load.physics('mainStageCollide', 'js/json/MainArenaCollide2.json', null);
+		//game.load.physics('mainStageCollide', 'js/json/betaStage.json', null);
 		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox2.json', null);
 		game.load.physics('finalHitbox', 'js/json/level10Hitbox.json', null);
 		//game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
@@ -690,6 +691,12 @@ Play.prototype = {
 			arena.body.loadPolygon('mainStageCollide', 'rightCave');
 			arena.body.loadPolygon('mainStageCollide', 'waterfallLedge');
 			arena.body.loadPolygon('mainStageCollide', 'gardenLedge');
+			/*arena.body.loadPolygon('mainStageCollide', 'lowerCliff');
+			arena.body.loadPolygon('mainStageCollide', 'housePlatform');
+			arena.body.loadPolygon('mainStageCollide', 'caveLeft');
+			arena.body.loadPolygon('mainStageCollide', 'caveRight');
+			arena.body.loadPolygon('mainStageCollide', 'waterFall');
+			arena.body.loadPolygon('mainStageCollide', 'garden');*/
 			arena.body.setCollisionGroup(platform);
 			arena.body.collides([touchPlatform]);
 			arena.body.immovable = true;
