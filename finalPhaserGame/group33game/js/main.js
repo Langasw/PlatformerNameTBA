@@ -23,6 +23,7 @@ var doormat;
 var wheel;
 var jumpTimer = 0;
 var jumpHitbox;
+var lowerHitbox;
 var defaultJumpVelocity = -180;
 var jumpVelocity = defaultJumpVelocity;
 var followJump = false;
@@ -32,6 +33,9 @@ var rippleBackground;
 var cutsceneBackground;
 var playerInHouse = false;
 var CutsceneText;
+var expandedCredits;
+var SubtitleText;
+var CreditsState = 0;
 var cutsceneTime; //timer for cutscenes
 var cutsceneLength = 250; //minimum time a cutscene can last
 var upward = 0; //movement of the waterfall platform
@@ -41,12 +45,17 @@ var direction = 1; //1 for left, 0 for right
 var jumpAnimOnce = 0;
 var jumpOnce = false;
 var testTimer = 0;
+var waterfall;
 var jumpNoise;
 var deathFallNoise;
 var freezeSound;
 var breakSound;
+var burnNoise;
+var level9wind;
 var breakNoiseOnce = false;
 var chimneyNoise;
+var burnNoise;
+var level9wind;
 var thawSound;
 var winSound;
 var deathX;
@@ -220,6 +229,7 @@ MainMenu.prototype = {
 		game.load.image('Sky5', 'assets/img/Sky5.png');
 		game.load.image('rippleFilter', 'assets/img/rippleFilter.png');
 		game.load.image('creditsBackground', 'assets/img/creditsPage.png');
+		game.load.image('extendedCredits', 'assets/img/extendedCredits.png')
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		//game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testArena', 'assets/img/mainArena2.png');
@@ -257,13 +267,14 @@ MainMenu.prototype = {
 		game.load.image('deathCloudC', 'assets/img/FireLevel4B.png');*/
 		//game.load.image('deathCloudD', 'assets/img/FireLevel8.png');
 		game.load.image('deathHouse', 'assets/img/FireHouse.png');
-		game.load.image('jumpHitbox', 'assets/img/jumpHitbox.png')
+		game.load.image('jumpHitbox', 'assets/img/jumpHitbox.png');
+		game.load.image('lowerHitbox', 'assets/img/lowerHitbox.png');
 		game.load.image('house1', 'assets/img/house1B.png');
 		game.load.image('house2', 'assets/img/house2B.png');
 		game.load.image('house3', 'assets/img/house3B.png');
 		game.load.image('houseFinal', 'assets/img/houseFinalB.png');
 		game.load.image('doormat', 'assets/img/doormat.png');
-		game.load.physics('mainStageCollide', 'js/json/MainArenaCollide2.json', null);
+		game.load.physics('mainStageCollide', 'js/json/MainArenaCollide3.json', null);
 		//game.load.physics('mainStageCollide', 'js/json/betaStage.json', null);
 		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox2.json', null);
 		game.load.physics('finalHitbox', 'js/json/level10Hitbox.json', null);
@@ -274,19 +285,31 @@ MainMenu.prototype = {
 
 		//------
 		game.load.audio('jumpSound', ['assets/audio/jump.wav']);
-		game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
+		//game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
+		game.load.audio('deathFall', ['assets/audio/hit.wav']);
 		game.load.audio('freezeSound', ['assets/audio/freezeSound.wav']);
 		game.load.audio('thawSound', ['assets/audio/thawSound.wav']);
 		game.load.audio('winSound', ['assets/audio/winLevel.wav']);
 		game.load.audio('chimneyNoise', ['assets/audio/chimneyNoise.wav']);
-		game.load.audio('windNoise', ['assets/audio/windNoise.mp3']);
-		game.load.audio('break', ['assets/audio/break.wav'])
+		game.load.audio('windNoise', ['assets/audio/windNoise2.wav']);
+		game.load.audio('break', ['assets/audio/break2.wav'])
+		game.load.audio('burnNoise', ['assets/audio/burning.wav'])
+		game.load.audio('level9Wind', ['assets/audio/creepyWind.wav'])
 
 	},
 	create: function() {
 		console.log('MainMenu: create');
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 		cutsceneShade = 0;
+		if(this.level < 9){
+			windNoise.destroy();
+		}
+		if(this.level == 9){
+			burnNoise.destroy();
+		}
+		if(this.level == 10){
+			creepyWind.destroy();
+		}
 
 		if(altEndTitle == false){
 			//adds the background image to the title screen
@@ -499,11 +522,24 @@ Play.prototype = {
 		//obsts.debug = true;
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
-		//play bg noise
-		if(this.level == 1){
+		//bg noise
+		if(this.level <= 7){
 			windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
-			windNoise.volume = 0.15;
-			windNoise.play();
+			windNoise.fadeIn(3000, true);
+			//windNoise.volume = 0.15;
+			//BGNoise.add(windNoise);
+		}else if(this.level == 8){
+			windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
+			windNoise.fadeIn(3000, true);
+			//windNoise.volume = 0.15;
+			burnNoise = new Phaser.Sound(game, 'burnNoise', 1.2, true);
+			burnNoise.fadeIn(3000, true);
+			//burnNoise.volume = 1.2;
+			//burnNoise.play();
+		}else if(this.level == 9){
+			level9wind = new Phaser.Sound(game, 'level9Wind', 0.1, true);
+			level9wind.fadeIn(3000, true);
+			level9wind.volume = 0.15;
 		}
 		
 		game.physics.p2.setImpactEvents(true);
@@ -549,13 +585,17 @@ Play.prototype = {
 		winSound = game.add.audio('winSound');
 		winSound.volume = 0.5;
 		breakSound = game.add.audio('break');
-		breakSound.volume = 0.5;
+		breakSound.volume = 0.9;
 
 		//set up collision groups
 		var platform = game.physics.p2.createCollisionGroup();
 		var touchPlatform = game.physics.p2.createCollisionGroup();
+		var cloud = game.physics.p2.createCollisionGroup();
+		var touchCloud = game.physics.p2.createCollisionGroup();
+
 		
 		game.physics.p2.enable(platform); //enable physics for walls
+		game.physics.p2.enable(cloud);
 
 		//put in secret walls (bounds for left and right sides_)
 		var leftWall = game.add.sprite(-20, game.height/2, 'secretWalls');
@@ -697,7 +737,7 @@ Play.prototype = {
 			arena.body.loadPolygon('mainStageCollide', 'caveRight');
 			arena.body.loadPolygon('mainStageCollide', 'waterFall');
 			arena.body.loadPolygon('mainStageCollide', 'garden');*/
-			arena.body.setCollisionGroup(platform);
+			arena.body.setCollisionGroup(platform); //change to platform
 			arena.body.collides([touchPlatform]);
 			arena.body.immovable = true;
 			
@@ -825,8 +865,9 @@ Play.prototype = {
 			cloudHExist = true;
 
 			//create cloud platform
-			cloud1Start = 420;
-			cloud1Range = 220;
+			cloud1Start = 345;
+			cloud1Range = 240;
+			cloud1Speed = 180;
 
 			var cloud1Y;
 			if(hasDied == false){
@@ -837,7 +878,7 @@ Play.prototype = {
 
 			cloud1 = game.add.sprite(430, cloud1Y, 'Cloud');
 			cloud1.enableBody = true;
-			game.physics.p2.enable(cloud1);
+			game.physics.p2.enable(cloud1, true);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
 			cloud1.body.clearShapes();
 			cloud1.body.setRectangle(140, 40);
@@ -905,6 +946,7 @@ Play.prototype = {
 			//create cloud platform 1
 			cloud1Start = 320;
 			cloud1Range = 190;
+			cloud1Speed = 160;
 
 			var cloud1Y;
 			if(hasDied == false){
@@ -1145,7 +1187,7 @@ Play.prototype = {
 
 			//create cloud platform 1
 			cloud1Start = 700;
-			cloud1Range = 170;
+			cloud1Range = 190;
 			cloud1Speed = 130;
 
 			var cloud1Y;
@@ -1166,7 +1208,7 @@ Play.prototype = {
 			cloud1.body.collides([touchPlatform]);
 			cloud1.body.kinematic = true;
 
-			var deathCloud1 = game.add.sprite(1043, 545, 'deathCloudWideB', 0);
+			var deathCloud1 = game.add.sprite(1043, 625, 'deathCloudWideB', 0);
 			deathCloud1.animations.add('normal', [0,0,0,1,2,3,4,4,2,1], 15, true);
 			deathCloud1.enableBody = true;
 			game.physics.p2.enable(deathCloud1);
@@ -1181,8 +1223,8 @@ Play.prototype = {
 			deathCloud1.play('normal');
 
 			//set waterfall platform prefabs
-			platformSpeed = 140;
-			lowY = 320;
+			platformSpeed = 150;
+			lowY = 280;
 			highY = 1150;
 			
 		}else if(this.level == 9){
@@ -1226,12 +1268,28 @@ Play.prototype = {
 		/*player.body.onBeginContact.add(refreshJump, this);
 		player.body.onEndContact.add(deleteJump, this);*/
 
+		/*lowerHitbox = game.add.sprite(100, playerStartY, 'lowerHitbox');
+		lowerHitbox.alpha = 0;
+		lowerHitbox.enableBody = true; 
+		lowerHitbox.anchor.set(0.5); //anchor at center
+		game.physics.p2.enable(lowerHitbox, true); //enable physics
+		lowerHitbox.body.clearShapes();
+		lowerHitbox.body.setRectangle(32,15);
+		lowerHitbox.body.setZeroDamping();
+		lowerHitbox.body.fixedRotation = true;
+		//jumpHitbox.body.kinematic = true;
+		lowerHitbox.body.setCollisionGroup(touchCloud);
+		lowerHitbox.body.gravity = 0;
+		lowerHitbox.body.collides([cloud/*, collectable] /*refreshJump, this);*/
+
 		jumpHitbox = game.add.sprite(100, playerStartY, 'jumpHitbox');
+		jumpHitbox.alpha = 0;
 		jumpHitbox.enableBody = true; 
 		jumpHitbox.anchor.set(0.5); //anchor at center
 		game.physics.p2.enable(jumpHitbox, true); //enable physics
 		jumpHitbox.body.setZeroDamping();
 		jumpHitbox.body.fixedRotation = true;
+		//jumpHitbox.body.kinematic = true;
 		jumpHitbox.body.setCollisionGroup(touchPlatform);
 		jumpHitbox.body.gravity = 0;
 		jumpHitbox.body.collides([platform/*, collectable*/], /*refreshJump, this*/);
@@ -1379,8 +1437,9 @@ Play.prototype = {
 		if(hasDied == true){
 			//console.log(deathX);
 			deathFallNoise.play();
-			var deathSpot = game.add.emitter(deathX, deathY, 50);
+			var deathSpot = game.add.emitter(deathX, deathY, 80);
 			deathSpot.makeParticles('deathPetal');
+			deathSpot.setYSpeed(-70, 380);
 			//deathSpot.setAngle(1,2);
 			//deathSpot.setAngle(280, 330);
 			//deathSpot.setXSpeed(-90, -20);
@@ -1390,6 +1449,16 @@ Play.prototype = {
 
 		function toNextLevel(body, bodyB, shapeA, shapeB, equation){
 			endArrow.kill();
+			console.log(this.level);
+			if(this.level <= 7){
+				windNoise.fadeOut(2000);
+				//BGNoise.add(windNoise);
+			}else if(this.level == 8){
+				windNoise.fadeOut(2000);
+				burnNoise.fadeOut(2000);
+			}else if(this.level == 9){
+				level9wind.fadeOut(2000);
+			}
 			hasDied = false;
 			//increment level
 			//this.level = this.level+1;
@@ -1446,7 +1515,7 @@ Play.prototype = {
 
 	},
 	update: function(){
-		//console.log(jumpAnimOnce);
+		//console.log(jumpTimer);
 		var playerVelocity = 200; //CHANGE PLAYER VELOCITY HERE
 		//create keyboard
 		this.cursors = game.input.keyboard.createCursorKeys();
@@ -1557,7 +1626,7 @@ Play.prototype = {
 
 
 		//jumping movement
-		if(this.cursors.up.isDown  && upWait >= 30){
+		if(this.cursors.up.isDown  && upWait >= 40){
 			if(jumpOnce == true){
 				player.body.velocity.y = defaultJumpVelocity;
 				jumpNoise.play(); //play jump sound
@@ -1605,6 +1674,11 @@ Play.prototype = {
 		//jumphitbox
 		jumpHitbox.body.x = player.body.x;
 		jumpHitbox.body.y = player.body.y+50;
+		jumpHitbox.body.velocity.y = 0;
+
+		/*lowerHitbox.body.x = player.body.x;
+		lowerHitbox.body.y = player.body.y+50;
+		lowerHitbox.body.velocity.y = 0;*/
 
 		//animation control
 		if(this.cursors.up.isDown && followJump == true && jumpOnce == false){ //upward movement
@@ -1780,22 +1854,84 @@ Credits.prototype = {
 			wrapWidth: 1000
 		}
 		
+		SubtitleText;
+
+		let textStyle2 = {
+			font: 'Optima',
+			fontSize: 48,
+			fill: '#000',
+			wordWrap: false,
+			wrapWidth: 1000
+		}
 		
 
-		CreditsText = game.add.text(game.width/2, game.height/2-120, 
-			'CREDITS \n' + "\n" + 
-			'Main Artist: Kristofer Torres' + "\n" +
-			'Character Design: Kristofer Torres' + "\n" +
-			'Main Programmer: Matthew Loebach' + "\n" +
-			'Level Designer: Matthew Loebach' + "\n" +
-			'Story: William Hintze' + "\n" + "\n" +
-			'Press Space to Exit' + "\n", 
+		CreditsText = game.add.text(game.width/2, game.height/2-250, 
+			'Placeholder',
 			textStyle);
 		CreditsText.anchor.set(0.5);
 		CreditsText.alpha = 0;
 		CreditsText.align = 'center';
 
+
 		game.stage.backgroundColor = "#CAE7EF";
+
+		SubtitleText = game.add.text(game.width/2, game.height/2+280, 
+			'Placeholder', 
+			textStyle2);
+		SubtitleText.anchor.set(0.5);
+		SubtitleText.alpha = 0;
+		SubtitleText.align = 'center';
+
+		game.stage.backgroundColor = "#CAE7EF";
+
+		if(CreditsState == 0){
+			CreditsText.text =
+			'CREDITS \n' + "\n" + 
+			'Core Artist: Kristofer Torres' + "\n" +
+			'Core Programmer: Matthew Loebach' + "\n" +
+			'Secondary Artist: William Wintze' + "\n" + "\n";
+			SubtitleText.text = 
+			'Press Left For a More In-Depth Breakdown' + "\n" +
+			'Press Right For Sound Effect Credits' + "\n" + "\n" +
+			'Press Space to Exit' + "\n";
+		}else if(CreditsState == 1){
+			CreditsText.text =
+			'EXPANDED CREDITS \n';
+			CreditsText.y = 140;
+			SubtitleText.text = 
+			'Press Up to Return to Main Credits' + "\n" +
+			'Press Right For Sound Effect Credits' + "\n" +
+			'Press Space to Exit' + "\n";
+			SubtitleText.y = 1240;
+			expandedCredits = game.add.sprite(0, -25, 'extendedCredits');
+		}else if(CreditsState == 2){
+			CreditsText.text =
+			'SOUND CREDITS \n';
+			CreditsText.y = 180;
+			SubtitleText.text = 
+			'Jump, Victory, Freeze, Thaw, Chimney Sounds:' + "\n" +
+			'The Essential Retro Video Game Sound Effects Collection'  + "\n" +
+			'[512 Sounds] by Juhani Junkala'+ "\n" +
+			"\n" +
+			'Wind: Heavy Rain Wind on soundbible.com' + "\n" +
+			'by Daniel Simion' + "\n" +
+			"\n" +
+			'Burning: Fireplace burning on freesound.com' + "\n" +
+			'by giddster' + "\n" +
+			"\n" +
+			'Death: leaves 1 on freesound.com' + "\n" +
+			'by adejabor' + "\n" +
+			"\n" +
+			'Wind: Ambience, Creepy Wind, A on freesound.com' + "\n" +
+			'by Inspector J' + "\n" +
+			"\n" +
+			'Press Left For a More In-Depth Breakdown' + "\n" +
+			'Press Up to Return to Main Credits' + "\n" + "\n" +
+			'Press Space to Exit' + "\n";
+			SubtitleText.y = 750;
+			SubtitleText.fontSize = 40;
+
+		}
 	},
 	update: function(){
 		//cutsceneBackground.tilePosition.y += 1;
@@ -1803,9 +1939,31 @@ Credits.prototype = {
 		if(CreditsText.alpha < 1){
 			CreditsText.alpha += 0.02;
 		}
+		if(SubtitleText.alpha < 1){
+			SubtitleText.alpha += 0.02;
+		}
+		if(CreditsState == 1 && SubtitleText.alpha < 1){
+			expandedCredits.alpha += 0.02;
+		}
 		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
 			//pass this.score
 			game.state.start('MainMenu', true, false, this.score);
+			CreditsState = 0;
+		}
+		if(game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && CreditsState != 1){
+			//pass this.score
+			game.state.start('Credits', true, false, this.score);
+			CreditsState = 1;
+		}
+		if(game.input.keyboard.isDown(Phaser.Keyboard.UP) && CreditsState != 0){
+			//pass this.score
+			game.state.start('Credits', true, false, this.score);
+			CreditsState = 0;
+		}
+		if(game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && CreditsState != 2){
+			//pass this.score
+			game.state.start('Credits', true, false, this.score);
+			CreditsState = 2;
 		}
 	}
 }
