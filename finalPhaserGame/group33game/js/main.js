@@ -8,7 +8,7 @@ var game = new Phaser.Game(1200, 1320, Phaser.AUTO);
 var player;
 //var platform; //group for platformable objects (bridges, clouds, background)
 //var touchPlatform; //group for objects that have collission with objects (player)
-var currentLevel = 1;
+var currentLevel = 0;
 var arena;
 var endArrow;
 var waterfallPlatform;
@@ -233,8 +233,8 @@ MainMenu.prototype = {
 		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
 		//game.load.image('testArena', 'assets/img/testArenaWide.png');
 		game.load.image('testArena', 'assets/img/mainArena2.png');
-		game.load.image('testRuins', 'assets/img/testRuins.png');
-		game.load.image('testFinal', 'assets/img/textFinalEnd.png');
+		game.load.image('testRuins', 'assets/img/testRuinsF.png');
+		game.load.image('testFinal', 'assets/img/finalArena.png');
 		game.load.atlas('waterfallGraphics', 'assets/img/WaterfallFlow.png', 'js/json/WaterfallFlow.json');
 		game.load.atlas('waterfallFrozen', 'assets/img/WaterfallFrozen.png', 'js/json/WaterfallFlow.json');
 		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
@@ -252,7 +252,7 @@ MainMenu.prototype = {
 		game.load.image('controlWindow', 'assets/img/controlWindow.png');
 		game.load.image('FadeEffect', 'assets/img/FadeEffect.png');
 		game.load.image('secretWalls', 'assets/img/secretWalls.png');
-		game.load.image('caveBackground', 'assets/img/betaCaveBGWide.png');
+		game.load.image('caveBackground', 'assets/img/caveBackground.png');
 		game.load.image('mainBackground', 'assets/img/mainBackground.png');
 		game.load.image('Bridge1', 'assets/img/BridgeA.png');
 		game.load.image('Bridge2', 'assets/img/BridgeB.png');
@@ -273,6 +273,7 @@ MainMenu.prototype = {
 		game.load.image('house2', 'assets/img/house2B.png');
 		game.load.image('house3', 'assets/img/house3B.png');
 		game.load.image('houseFinal', 'assets/img/houseFinalB.png');
+		game.load.atlas('houseBurning', 'assets/img/houseBurn.png', 'js/json/HouseBurn.json');
 		game.load.image('doormat', 'assets/img/doormat.png');
 		game.load.physics('mainStageCollide', 'js/json/MainArenaCollide3.json', null);
 		//game.load.physics('mainStageCollide', 'js/json/betaStage.json', null);
@@ -392,6 +393,7 @@ var Cutscene = function(game){};
 Cutscene.prototype = {
 	init: function(){
 		//get level from variable
+		currentLevel++;
 		this.level = currentLevel;
 	},
 	preload: function(){
@@ -400,14 +402,7 @@ Cutscene.prototype = {
 	create: function(){
 		console.log('Cutscene: create');
 
-		/*windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
-		windNoise.volume = 0.1;
-		windNoise.play();*/
-
 		cutsceneTime = 0;
-		
-
-		
 
 		//set background colors
 		if(this.level == 1 || this.level == 2){
@@ -497,7 +492,7 @@ Cutscene.prototype = {
 					game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
 				}*/
 			}else{
-				currentLevel = 1;
+				currentLevel = 0;
 				//windNoise.destroy();
 				game.state.start('MainMenu', true, false, this.level);
 			}
@@ -523,12 +518,12 @@ Play.prototype = {
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
 		//bg noise
-		if(this.level <= 7){
+		if(this.level <= 7 && !hasDied){
 			windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
 			windNoise.fadeIn(3000, true);
 			//windNoise.volume = 0.15;
 			//BGNoise.add(windNoise);
-		}else if(this.level == 8){
+		}else if(this.level == 8 && !hasDied){
 			windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
 			windNoise.fadeIn(3000, true);
 			//windNoise.volume = 0.15;
@@ -536,7 +531,7 @@ Play.prototype = {
 			burnNoise.fadeIn(3000, true);
 			//burnNoise.volume = 1.2;
 			//burnNoise.play();
-		}else if(this.level == 9){
+		}else if(this.level == 9 && !hasDied){
 			level9wind = new Phaser.Sound(game, 'level9Wind', 0.1, true);
 			level9wind.fadeIn(3000, true);
 			level9wind.volume = 0.15;
@@ -666,7 +661,7 @@ Play.prototype = {
 
 		}else if(this.level == 8){ //level 8
 			//load house on fire
-			var deathHouse = game.add.sprite(600, 450, 'deathHouse');
+			var deathHouse = game.add.sprite(600, 450, 'houseBurning', 0);
 			deathHouse.enableBody = true;
 			game.physics.p2.enable(deathHouse);
 			deathHouse.physicsBodyType = Phaser.Physics.P2JS;
@@ -677,6 +672,8 @@ Play.prototype = {
 			deathHouse.body.collides([touchPlatform]);
 			deathHouse.body.kinematic = true;
 			deathHouse.body.onBeginContact.add(killPlayer, this);
+			deathHouse.animations.add('normal', [0,1,2,3,1], 10, true);
+			deathHouse.animations.play('normal');
 		}
 
 		
@@ -684,7 +681,7 @@ Play.prototype = {
 		//create bridges
 		if(this.level > 0 && this.level <= 3){ //if between levels 1 and 3, create bridge 1
 			var bridge1 = game.add.sprite(265, 725, 'Bridge1'); //leftmost bridge
-			game.physics.p2.enable(bridge1, this);
+			game.physics.p2.enable(bridge1);
 			bridge1.physicsBodyType = Phaser.Physics.P2JS;
 			bridge1.body.clearShapes();
 			bridge1.body.setRectangle(230, 30);
@@ -696,7 +693,7 @@ Play.prototype = {
 			//create bridges
 			var bridge2 = game.add.sprite(870, 690, 'Bridge2'); //rightmost L-shape bridge
 			var bridge3 = game.add.sprite(545, 1085, 'Bridge3'); //bottom cave bridge
-			game.physics.p2.enable([bridge2, bridge3], this);
+			game.physics.p2.enable([bridge2, bridge3]);
 			bridge2.physicsBodyType = Phaser.Physics.P2JS;
 			bridge3.physicsBodyType = Phaser.Physics.P2JS;
 
@@ -764,7 +761,7 @@ Play.prototype = {
 			arena = new Arena(game, 900, (game.height)/2, 'testFinal', this.level);
 			game.add.existing(arena);
 			arena.enableBody = true;
-			arena.anchor.set(0);
+			//arena.anchor.set(0);
 			arena.physicsBodyType = Phaser.Physics.P2JS;
 			arena.body.loadPolygon('finalHitbox', 'stage10Ledge');
 			arena.body.loadPolygon('finalHitbox', 'stage10Cliff');
@@ -803,9 +800,9 @@ Play.prototype = {
 			flowers3.animations.play('bounce');
 
 		}else if(this.level == 9){
-			game.add.sprite(100, 510, 'seed');
+			game.add.sprite(100, 510-15, 'seed');
 			game.add.sprite(160, 510, 'seed');
-			game.add.sprite(220, 510, 'seed');
+			game.add.sprite(220, 510-2, 'seed');
 		}
 
 
@@ -867,7 +864,7 @@ Play.prototype = {
 			//create cloud platform
 			cloud1Start = 345;
 			cloud1Range = 240;
-			cloud1Speed = 180;
+			cloud1Speed = 150;
 
 			var cloud1Y;
 			if(hasDied == false){
@@ -878,7 +875,7 @@ Play.prototype = {
 
 			cloud1 = game.add.sprite(430, cloud1Y, 'Cloud');
 			cloud1.enableBody = true;
-			game.physics.p2.enable(cloud1, true);
+			game.physics.p2.enable(cloud1);
 			cloud1.physicsBodyType = Phaser.Physics.P2JS;
 			cloud1.body.clearShapes();
 			cloud1.body.setRectangle(140, 40);
@@ -1286,7 +1283,7 @@ Play.prototype = {
 		jumpHitbox.alpha = 0;
 		jumpHitbox.enableBody = true; 
 		jumpHitbox.anchor.set(0.5); //anchor at center
-		game.physics.p2.enable(jumpHitbox, true); //enable physics
+		game.physics.p2.enable(jumpHitbox); //enable physics
 		jumpHitbox.body.setZeroDamping();
 		jumpHitbox.body.fixedRotation = true;
 		//jumpHitbox.body.kinematic = true;
@@ -1451,18 +1448,18 @@ Play.prototype = {
 			endArrow.kill();
 			console.log(this.level);
 			if(this.level <= 7){
-				windNoise.fadeOut(2000);
+				windNoise.fadeOut(2600);
 				//BGNoise.add(windNoise);
 			}else if(this.level == 8){
-				windNoise.fadeOut(2000);
-				burnNoise.fadeOut(2000);
+				windNoise.fadeOut(2600);
+				burnNoise.fadeOut(2600);
 			}else if(this.level == 9){
-				level9wind.fadeOut(2000);
+				level9wind.fadeOut(2600);
 			}
+			//windNoise.fadeOut(2000);
 			hasDied = false;
 			//increment level
 			//this.level = this.level+1;
-			currentLevel++;
 			player.kill();
 			winSound.play();
 			var winSpot = game.add.emitter(endArrow.body.x, endArrow.body.y);
