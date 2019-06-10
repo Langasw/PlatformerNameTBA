@@ -1,76 +1,76 @@
 //Main Project
 "use strict"; //use strict
-//update THIS phaser !
 
 var game = new Phaser.Game(1200, 1320, Phaser.AUTO);
 
-//declare variables
-var player;
-//var platform; //group for platformable objects (bridges, clouds, background)
-//var touchPlatform; //group for objects that have collission with objects (player)
-var currentLevel = 0;
-var arena;
-var endArrow;
-var waterfallPlatform;
-var waterfallPlatformJump;
-var waterfallCurrentY;
-var waterfallCurrentUpward;
-var upWait = 0;
-var switchPool;
-var offPlatform = 0;
-var waterfall;
-var doormat;
-var wheel;
-var jumpTimer = 0;
-var jumpHitbox;
-var lowerHitbox;
-var defaultJumpVelocity = -180;
-var jumpVelocity = defaultJumpVelocity;
-var followJump = false;
-var fadeEffect;
-var CreditsText;
-var rippleBackground;
-var cutsceneBackground;
-var playerInHouse = false;
-var CutsceneText;
-var expandedCredits;
-var SubtitleText;
-var CreditsState = 0;
+//DECLARE GLOBAL VARIABLES
+
+var player; //Player Sprite
+var currentLevel = 0; //Level Variable
+var arena; //Arena Sprite
+var endArrow; //Ending Petal Sprite
+var waterfallPlatform; //Waterfall Platform Sprite
+var waterfallCurrentY; //tracker for Waterfall Platform Y Position between states
+var waterfallCurrentUpward; //tracker for Waterfall Platform's Veritcal Direction between states
+var switchPool; //Cave's Pool switch Sprite
+var offPlatform = 0; //timer for how long a player has been off a platform (for animations)
+var waterfall; //Waterfall Sprite
+var doormat; //Sprite for house's doormat/hitbox for house chimney trick
+var wheel; //cosmetic sprite for the wheel on the Waterfall Platform
+var jumpTimer = 0; //timer for how long the minimum jump lasts
+var jumpHitbox; //Sprite for the Hitbox of the player's feet/jump refresh
+var upWait = 0; //timer for how long until player can press Up.
+var defaultJumpVelocity = -180; //upward velocity of the minimum possible jump
+var jumpVelocity = defaultJumpVelocity; //dynamic velocity of jumping variable
+var followJump = false; //boolean for if the player is in the follow up part of the jump or not
+var fadeEffect; //sprite for the fade to black screen
+var CreditsText; //sprite for the text in the credits
+var SubtitleText; //sprite for subtitle text in credit
+var CreditsState = 0; //variable that keeps track which screen the credits are in
+var expandedCredits; //sprite for expanded text in credits
+var rippleBackground; //parallax background for the credits
+var CutsceneText; //sprite for text in cutscenes
+var cutsceneBackground; //parallax background of the cutscenes
 var cutsceneTime; //timer for cutscenes
 var cutsceneLength = 250; //minimum time a cutscene can last
 var upward = 0; //movement of the waterfall platform
 var lowY; //lowest y point of the waterfall platform in the stage
 var highY; //highest y point of the waterfall platform in the stage
 var direction = 1; //1 for left, 0 for right
-var jumpAnimOnce = 0;
-var jumpOnce = false;
-var testTimer = 0;
-var waterfall;
-var jumpNoise;
-var deathFallNoise;
-var freezeSound;
-var breakSound;
-var burnNoise;
-var level9wind;
-var breakNoiseOnce = false;
-var chimneyNoise;
-var burnNoise;
-var level9wind;
-var thawSound;
-var winSound;
-var deathX;
-var deathY;
-var hasDied = false;
-var winAnim = false;
-var winAnimTimer = 0;
-var cameraScroll;
-var altEndTitle = false;
-var goodEndTitle = false;
-var cutsceneShade = 0;
-var shadeEffect;
-var gameSky;
+var jumpAnimOnce = 0; //boolean for if the jump animation is active or not
+var jumpOnce = false; //boolean for to make sure jumping happens only once on press
+var playerInHouse = false; //boolean for if the player is in the house or not
+var deathX; //x position where the player last died
+var deathY; //y position where the player last died
+var hasDied = false; //boolean for if the play state is coming after a player death
+var winAnim = false; //boolean to start the win animation
+var winAnimTimer = 0; //timer for how long the win animation should last
+var cameraScroll; //variable that gives dynamic motion to the camera movement in the good end
+var altEndTitle = false; //boolean for if the title is for the alternate end or not
+var goodEndTitle = false; //boolean for if the title is for the good end or not
+var cutsceneShade = 0; //level of darkness that should be applied to each cutscene
+var shadeEffect; //sprite for the shade effect applied to cutscenes over time
+var gameSky; //parallax scrolling background for the sky
+var playerInPool = false; //boolean for if the player is in the pool or not
+var waterFrozen = false; //boolean for if the water is frozen or not
+var playClick = false; //boolean for if the play button was clicked or not
+var creditsClick = false; //boolean for if the credits button was clicked or not
+var platformSpeed = 0; //how fast the waterfall platform goes
+var downPress = false; //was down pressed or not
 
-///CLOUD FUNCTIONS
+var windNoise; //variable for ambient wind noise
+var jumpNoise; //variable for jumping sound effect
+var deathFallNoise; //variable for death sound effect
+var freezeSound; //variable for freeze sound effect
+var thawSound;//variable for the thawing sound
+var breakSound; //variable for alternate ending death sound effect
+var breakNoiseOnce = false; //variable to ensure the break noise happens only once
+var burnNoise; //variable for burning sound effect
+var level9wind; //variable for the level 9 theme
+var chimneyNoise; //variable for the noise when the player pops from a chimney
+var winSound; //variable for the victory sound effect
+
+///CLOUD FUNCTIONS (because theres a lot of them)
 var cloud1;
 var cloud1Speed = 100;
 var cloud2;
@@ -91,18 +91,12 @@ var cloud1Upward = 0;
 var cloud2Range; //vertical cloud 2
 var cloud2Start;
 var cloud2Upward = 0;
-//var cloudHRange; //horizontal cloud
-//var cloudHUpward = 0;
-var windNoise;
-var playerInPool = false;
-var waterFrozen = false;
-var playClick = false;
-var creditsClick = false;
-var platformSpeed = 0;
-var downPress = false;
 
 
-///game's script
+
+
+///game's script (in order of cutscene)
+//Search BufferText[Level#] for each the text that corresponds to each level
 //|                                    					    | text size
 var BufferText1 = 'Petals are time’s flow given form. \n' + '\n' +
 
@@ -201,107 +195,95 @@ var BufferTextAlt = '….As you wish. \n' + '\n' +
 'By your command, it is finished. \n' + '\n';
 
 
-
 //Main Menu state
 var MainMenu = function(game) {};
 MainMenu.prototype = {
 	preload: function(){
 		console.log('MainMenu: preload');
-		// preload assets
+		// preload the game's assets
 
 		//title screen assets
-		game.load.image('titleImage', 'assets/img/TitleBackgroundEdit.png');
-		game.load.image('titleImage2', 'assets/img/TitleBackgroundAltEnd.png');
-		game.load.image('titleName', 'assets/img/TitleEdit.png');
-		game.load.image('Petal3', 'assets/img/Petal3.png');
-		game.load.image('Petal2', 'assets/img/Petal2.png');
-		game.load.image('Blossom', 'assets/img/Petal1.png');
-		game.load.image('PlayButton', 'assets/img/PlayButton.png');
-		game.load.image('PlayShadow', 'assets/img/PlayShadow.png');
-		game.load.image('CreditButton', 'assets/img/CreditButton.png');
-		game.load.image('Select', 'assets/img/SelectIcon.png');
+		game.load.image('titleImage', 'assets/img/TitleBackgroundEdit.png'); //main background
+		game.load.image('titleImage2', 'assets/img/TitleBackgroundAltEnd.png'); //alt end background
+		game.load.image('titleName', 'assets/img/TitleEdit.png'); //title name
+		game.load.image('Petal3', 'assets/img/Petal3.png'); //petal asset 1
+		game.load.image('Petal2', 'assets/img/Petal2.png'); //petal asset 2
+		game.load.image('Blossom', 'assets/img/Petal1.png'); //petal blossom
+		game.load.image('PlayButton', 'assets/img/PlayButton.png'); //play button
+		game.load.image('PlayShadow', 'assets/img/PlayShadow.png'); //play button's shadow
+		game.load.image('CreditButton', 'assets/img/CreditButton.png'); //credits button
+		game.load.image('Select', 'assets/img/SelectIcon.png'); //select icon
 		//----
-		game.load.image('rippleBackground', 'assets/img/rippleBackground.png');
-		game.load.image('Sky1', 'assets/img/Sky1.png');
-		game.load.image('Sky2', 'assets/img/Sky2.png');
-		game.load.image('Sky3', 'assets/img/Sky3.png');
-		game.load.image('Sky4', 'assets/img/Sky4.png');
-		game.load.image('Sky5', 'assets/img/Sky5.png');
-		game.load.image('rippleFilter', 'assets/img/rippleFilter.png');
-		game.load.image('creditsBackground', 'assets/img/creditsPage.png');
-		game.load.image('extendedCredits', 'assets/img/extendedCredits.png')
-		game.load.image('tempPlayer', 'assets/img/placeholderSprite.png');
-		//game.load.image('testArena', 'assets/img/testArenaWide.png');
-		game.load.image('testArena', 'assets/img/mainArena2.png');
-		game.load.image('testRuins', 'assets/img/testRuinsF.png');
-		game.load.image('testFinal', 'assets/img/finalArena.png');
-		game.load.atlas('waterfallGraphics', 'assets/img/WaterfallFlow.png', 'js/json/WaterfallFlow.json');
-		game.load.atlas('waterfallFrozen', 'assets/img/WaterfallFrozen.png', 'js/json/WaterfallFlow.json');
-		game.load.atlas('tempSpriteheet', 'assets/img/betaSpriteAtlas.png', 'js/json/betaSpriteAtlas.json');
-		game.load.image('collideTest', 'assets/img/testSprite.png');
-		game.load.image('wheelPlatform', 'assets/img/WheelPlatform.png');
-		game.load.image('wheel', 'assets/img/WheelPart.png')
-		game.load.image('betaArrow', 'assets/img/betaArrow.png');
-		game.load.image('endPetal', 'assets/img/endPetal.png');
-		game.load.image('seed', 'assets/img/FlowerBud.png');
-		game.load.image('sprout', 'assets/img/FlowerYouth.png');
-		game.load.atlas('flowers', 'assets/img/flowers.png', 'js/json/flowers.json');
-		game.load.image('endParticle', 'assets/img/endParticle.png');
-		game.load.image('smokeCloud', 'assets/img/chimneySmoke.png');
-		game.load.image('deathPetal', 'assets/img/deathPetal.png');
-		game.load.image('controlWindow', 'assets/img/controlWindow.png');
-		game.load.image('FadeEffect', 'assets/img/FadeEffect.png');
-		game.load.image('secretWalls', 'assets/img/secretWalls.png');
-		game.load.image('caveBackground', 'assets/img/caveBackground.png');
-		game.load.image('mainBackground', 'assets/img/mainBackground.png');
-		game.load.image('Bridge1', 'assets/img/BridgeA.png');
-		game.load.image('Bridge2', 'assets/img/BridgeB.png');
-		game.load.image('Bridge3', 'assets/img/BridgeC.png');
-		game.load.image('Cloud', 'assets/img/Cloud.png');
-		game.load.atlas('deathCloudLongA', 'assets/img/FlameLongA.png', 'js/json/FlameLongA.json');
-		game.load.atlas('deathCloudLongB', 'assets/img/FlameLongB.png', 'js/json/FlameLongB.json');
-		game.load.atlas('deathCloudWideA', 'assets/img/FlameWideA.png', 'js/json/FlameWideA.json');
-		game.load.atlas('deathCloudWideB', 'assets/img/FlameWideB.png', 'js/json/FlameWideB.json');
-		/*game.load.image('deathCloudA', 'assets/img/FireLevel3.png');
-		game.load.image('deathCloudB', 'assets/img/FireLevel4A.png');
-		game.load.image('deathCloudC', 'assets/img/FireLevel4B.png');*/
-		//game.load.image('deathCloudD', 'assets/img/FireLevel8.png');
-		game.load.image('deathHouse', 'assets/img/FireHouse.png');
-		game.load.image('jumpHitbox', 'assets/img/jumpHitbox.png');
-		game.load.image('lowerHitbox', 'assets/img/lowerHitbox.png');
-		game.load.image('house1', 'assets/img/house1B.png');
-		game.load.image('house2', 'assets/img/house2B.png');
-		game.load.image('house3', 'assets/img/house3B.png');
-		game.load.image('houseFinal', 'assets/img/houseFinalB.png');
-		game.load.atlas('houseBurning', 'assets/img/houseBurn.png', 'js/json/HouseBurn.json');
-		game.load.image('doormat', 'assets/img/doormat.png');
-		game.load.physics('mainStageCollide', 'js/json/MainArenaCollide3.json', null);
-		//game.load.physics('mainStageCollide', 'js/json/betaStage.json', null);
-		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox2.json', null);
-		game.load.physics('finalHitbox', 'js/json/level10Hitbox.json', null);
-		//game.load.atlas('poolSwitch', 'assets/img/switchPool.png', 'js/json/switchPool.json');
-		game.load.atlas('poolSwitch', 'assets/img/switchAnimation.png', 'js/json/switchAnimation.json');
-		game.load.physics('housePhysics', 'js/json/houseHitbox.json', null);
-		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json');
+		game.load.image('rippleBackground', 'assets/img/rippleBackground.png'); //cutscene's ripple bg
+		game.load.image('Sky1', 'assets/img/Sky1.png'); //bg for levels 1 and 10
+		game.load.image('Sky2', 'assets/img/Sky2.png'); //bg for levels 2 and 9
+		game.load.image('Sky3', 'assets/img/Sky3.png'); //bg for levels 3 and 8
+		game.load.image('Sky4', 'assets/img/Sky4.png'); //bg for levels 4 and 7
+		game.load.image('Sky5', 'assets/img/Sky5.png'); //bg for levels 5 and 6
+		game.load.image('rippleFilter', 'assets/img/rippleFilter.png'); //darkening filer for cutscenes
+		game.load.image('creditsBackground', 'assets/img/creditsPage.png'); //background for credits page
+		game.load.image('extendedCredits', 'assets/img/extendedCredits.png') //sprite for extended credits text
+		game.load.image('testArena', 'assets/img/mainArena2.png'); //arena for levels 1-8
+		game.load.image('testRuins', 'assets/img/testRuinsF.png'); //arena for level 9
+		game.load.image('testFinal', 'assets/img/finalArena.png'); //arena for level 10
+		game.load.atlas('waterfallGraphics', 'assets/img/WaterfallFlow.png', 'js/json/WaterfallFlow.json'); //animated waterfall sprite
+		game.load.atlas('waterfallFrozen', 'assets/img/WaterfallFrozen.png', 'js/json/WaterfallFlow.json'); //frames for frozen waterfall
+		game.load.image('wheelPlatform', 'assets/img/WheelPlatform.png'); //sprite for platform of wheel platform
+		game.load.image('wheel', 'assets/img/WheelPart.png'); //sprite for wheel of wheel platform
+		game.load.image('endPetal', 'assets/img/endPetal.png'); //sprite for victory end petal
+		game.load.image('seed', 'assets/img/FlowerBud.png'); //sprite for flower seed
+		game.load.image('sprout', 'assets/img/FlowerYouth.png'); //sprite for flower bud
+		game.load.atlas('flowers', 'assets/img/flowers.png', 'js/json/flowers.json'); //animated sprite for flowers
+		game.load.image('endParticle', 'assets/img/endParticle.png'); //particle effect petals that spawn when player wins
+		game.load.image('smokeCloud', 'assets/img/chimneySmoke.png'); //particle effect for player jumping out of chimney
+		game.load.image('deathPetal', 'assets/img/deathPetal.png'); //particle effect for petals in death animation
+		game.load.image('controlWindow', 'assets/img/controlWindow.png'); //control window sprite
+		game.load.image('FadeEffect', 'assets/img/FadeEffect.png'); //sprite for fade to black effect
+		game.load.image('secretWalls', 'assets/img/secretWalls.png'); //sprite for hidden bound walls
+		game.load.image('caveBackground', 'assets/img/caveBackground.png'); //background elements of the level 9 cave
+		game.load.image('mainBackground', 'assets/img/mainBackground.png'); //background elements for the level 1-8 arena
+		game.load.image('Bridge1', 'assets/img/BridgeA.png'); //sprite for leftmost bridge
+		game.load.image('Bridge2', 'assets/img/BridgeB.png'); //sprite for bridge in cave
+		game.load.image('Bridge3', 'assets/img/BridgeC.png'); //sprite for l-shaped bridge
+		game.load.image('Cloud', 'assets/img/Cloud.png'); //sprite for cloud platform
+		game.load.atlas('deathCloudLongA', 'assets/img/FlameLongA.png', 'js/json/FlameLongA.json'); //sprite for long death clouds
+		game.load.atlas('deathCloudLongB', 'assets/img/FlameLongB.png', 'js/json/FlameLongB.json'); //sprite for longer death clouds
+		game.load.atlas('deathCloudWideA', 'assets/img/FlameWideA.png', 'js/json/FlameWideA.json'); //sprite for wide death clouds
+		game.load.atlas('deathCloudWideB', 'assets/img/FlameWideB.png', 'js/json/FlameWideB.json'); //sprite for not as wide death clouds
+		game.load.image('deathHouse', 'assets/img/FireHouse.png'); //sprite for house on fire's hitbox
+		game.load.image('jumpHitbox', 'assets/img/jumpHitbox.png'); //sprite for the hitbox of the player
+		game.load.image('house1', 'assets/img/house1B.png'); //sprite for first stage of house
+		game.load.image('house2', 'assets/img/house2B.png'); //sprite for second stage of house
+		game.load.image('house3', 'assets/img/house3B.png'); //sprite for third stage of house
+		game.load.image('houseFinal', 'assets/img/houseFinalB.png'); //sprite for final stage of house
+		game.load.atlas('houseBurning', 'assets/img/houseBurn.png', 'js/json/HouseBurn.json'); //animation for the house on fire burning
+		game.load.image('doormat', 'assets/img/doormat.png'); //sprite for the doormat in front of house
+		game.load.physics('mainStageCollide', 'js/json/MainArenaCollide3.json', null); //hitbox for level 1-8 arena
+		game.load.physics('ruinsHitbox', 'js/json/level9Hitbox2.json', null); //hitbox for level 9 arena
+		game.load.physics('finalHitbox', 'js/json/level10Hitbox.json', null); //hitbox for level 10 arena
+		game.load.atlas('poolSwitch', 'assets/img/switchAnimation.png', 'js/json/switchAnimation.json'); //animation for pool switch
+		game.load.physics('housePhysics', 'js/json/houseHitbox.json', null); //hitbox for the house
+		game.load.atlas('characterSpritesheet', 'assets/img/characterSpritesheet.png', 'js/json/characterSprite.json'); //spritesheet for the character player
 
-		//------
-		game.load.audio('jumpSound', ['assets/audio/jump.wav']);
-		//game.load.audio('deathFall', ['assets/audio/pitFall.wav']);
-		game.load.audio('deathFall', ['assets/audio/hit.wav']);
-		game.load.audio('freezeSound', ['assets/audio/freezeSound.wav']);
-		game.load.audio('thawSound', ['assets/audio/thawSound.wav']);
-		game.load.audio('winSound', ['assets/audio/winLevel.wav']);
-		game.load.audio('chimneyNoise', ['assets/audio/chimneyNoise.wav']);
-		game.load.audio('windNoise', ['assets/audio/windNoise2.wav']);
-		game.load.audio('break', ['assets/audio/break2.wav'])
-		game.load.audio('burnNoise', ['assets/audio/burning.wav'])
-		game.load.audio('level9Wind', ['assets/audio/creepyWind.wav'])
+		//------Audio Files
+		game.load.audio('jumpSound', ['assets/audio/jump.wav']); //jump sound
+		game.load.audio('deathFall', ['assets/audio/hit.wav']); //death sound
+		game.load.audio('freezeSound', ['assets/audio/freezeSound.wav']); //freeze sound
+		game.load.audio('thawSound', ['assets/audio/thawSound.wav']); //thaw sound
+		game.load.audio('winSound', ['assets/audio/winLevel.wav']); //victory sound
+		game.load.audio('chimneyNoise', ['assets/audio/chimneyNoise.wav']); //chimney jump sound
+		game.load.audio('windNoise', ['assets/audio/windNoise2.wav']); //wind bg noise
+		game.load.audio('break', ['assets/audio/break2.wav']); //alt end death noise
+		game.load.audio('burnNoise', ['assets/audio/burning.wav']); //burning noise
+		game.load.audio('level9Wind', ['assets/audio/creepyWind.wav']); //level 9 wind
 
 	},
 	create: function() {
 		console.log('MainMenu: create');
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-		cutsceneShade = 0;
+		cutsceneShade = 0; //reset cutscene shade
+
+		//destroy all background noise
 		if(this.level < 9){
 			windNoise.destroy();
 		}
@@ -318,13 +300,11 @@ MainMenu.prototype = {
 
 			//creates the petal falling animation and wrap
 			for (var j =0; j < 40; j++){
-				if(goodEndTitle){
+				if(goodEndTitle){ //good end animation
 					this.petalOne = new Title(game, 'endParticle');
 					game.add.existing(this.petalOne);
 
-					/*this.petalTwo = new Title(game, 'endParticle');
-					game.add.existing(this.petalTwo);*/
-				}else{
+				}else{ //normal title animation
 					this.petalOne = new Title(game, 'Petal2');
 					game.add.existing(this.petalOne);
 
@@ -332,8 +312,6 @@ MainMenu.prototype = {
 					game.add.existing(this.petalTwo);
 				}
 			
-				//this.Blossom = new Title(game, 'Blossom');
-				//game.add.existing(this.Blossom);
 			}
 
 			//adds the title, play and credit icons
@@ -344,12 +322,13 @@ MainMenu.prototype = {
 			ButtonPlay.inputEnabled = true;
 			ButtonPlay.events.onInputDown.add(playButtonClicked, this);
 			
-		}else{
+		}else{ //alternate ending
 			this.add.image(0,0,'titleImage2');
 			this.add.image(200,350, 'titleName');
 			this.add.image(525, 925, 'PlayShadow');
 		}
 
+		//add credits button
 		var ButtonCredits = this.add.image(500,1050, 'CreditButton');
 		ButtonCredits.inputEnabled = true;
 		ButtonCredits.events.onInputDown.add(creditsButtonClicked, this);
@@ -357,22 +336,15 @@ MainMenu.prototype = {
 		
 		//generate start screen
 		var MainMenuText;
-		//check to see if format is right if it fails
-		/*MainMenuText = game.add.text(game.width/2, (game.height/2)-200, 
-			'Use Left, Right, and Up to Move \n' +
-			'Press Space to Begin!', 
-			{fontSize: '32px', fill: '#000' });
-		game.stage.backgroundColor = "#FACADE";
-		MainMenuText.anchor.set(0.5);
-		MainMenuText.align = 'center';*/
 	},
 	update: function(){
 		//main menu logic
-		//changes state when the play button is clicked
+		//changes state to play when the play button is clicked
 		if(playClick== true){
 			playClick = false;
 			game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 		}
+		//change state to credits if this button is clicked
 		if(creditsClick == true){
 			creditsClick = false;
 			game.state.start('Credits', true, false, this.level); //move to Cutscene if spacebar is pressed
@@ -388,11 +360,12 @@ function playButtonClicked(){
 function creditsButtonClicked(){
 	creditsClick = true;
 }
+
 //Cutscene state
 var Cutscene = function(game){};
 Cutscene.prototype = {
 	init: function(){
-		//get level from variable
+		//increment level
 		currentLevel++;
 		this.level = currentLevel;
 	},
@@ -435,7 +408,6 @@ Cutscene.prototype = {
 		CutsceneText.alpha = 0;
 		CutsceneText.align = 'center';
 
-		//game.stage.backgroundColor = "#FACADE";
 		//take cutscene text
 		if(this.level == 1){
 			CutsceneText.text = BufferText1;
@@ -486,14 +458,9 @@ Cutscene.prototype = {
 			cutsceneTime = 0;
 			if(this.level <= 10){ //if the game is in a standard level #
 				game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
-				cameraScroll = 0;
-				//wait for mp3 to decode
-				/*if(this.cache.isSoundDecoded('windNoise')){
-					game.state.start('Play', true, false, this.level); //move to Play if spacebar is pressed
-				}*/
-			}else{
-				currentLevel = 0;
-				//windNoise.destroy();
+				cameraScroll = 0; //reset camera scrolling
+			}else{ //reset back to main menu
+				currentLevel = 0; //reset level to zero (not one, bc of incrementation)
 				game.state.start('MainMenu', true, false, this.level);
 			}
 			
@@ -514,23 +481,17 @@ Play.prototype = {
 	create: function(){
 		console.log('Play: create');
 		//enable physics
-		//obsts.debug = true;
 		game.physics.startSystem(Phaser.Physics.P2JS);
 
 		//bg noise
 		if(this.level <= 7 && !hasDied){
 			windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
 			windNoise.fadeIn(3000, true);
-			//windNoise.volume = 0.15;
-			//BGNoise.add(windNoise);
 		}else if(this.level == 8 && !hasDied){
 			windNoise = new Phaser.Sound(game, 'windNoise', 0.1, true);
 			windNoise.fadeIn(3000, true);
-			//windNoise.volume = 0.15;
 			burnNoise = new Phaser.Sound(game, 'burnNoise', 1.2, true);
 			burnNoise.fadeIn(3000, true);
-			//burnNoise.volume = 1.2;
-			//burnNoise.play();
 		}else if(this.level == 9 && !hasDied){
 			level9wind = new Phaser.Sound(game, 'level9Wind', 0.1, true);
 			level9wind.fadeIn(3000, true);
@@ -539,8 +500,8 @@ Play.prototype = {
 		
 		game.physics.p2.setImpactEvents(true);
 		winAnim = false;
-		//put in sunset backgrounds
 
+		//put in sunset backgrounds
 		if(this.level == 1 || this.level == 10){ //levels 1 and 10
 			gameSky = game.add.tileSprite(0, 0, 1250, 1330, 'Sky1');
 			gameSky.fixedToCamera = true;
@@ -553,13 +514,6 @@ Play.prototype = {
 		}else if(this.level == 5 || this.level == 6){ //levels 1 and 10
 			gameSky = game.add.tileSprite(0, 0, 1250, 1330, 'Sky5');
 		}
-
-		
-		//game.stage.backgroundColor = "#da9986";
-
-		//create cloud group
-		/*var cloudVertical = game.add.group();
-		var cloudHorizontal = game.add.group();*/
 
 		//set up base variables
 		var playerStartY = 420;
@@ -653,7 +607,6 @@ Play.prototype = {
 			game.physics.p2.enable(house);
 			house.physicsBodyType = Phaser.Physics.P2JS;
 			house.body.clearShapes();
-			//house.body.loadPolygon('houseHitbox', 'houseHitbox');
 			house.body.loadPolygon('housePhysics', 'normalHitbox');
 			house.body.setCollisionGroup(platform);
 			house.body.collides([touchPlatform]);
@@ -666,7 +619,6 @@ Play.prototype = {
 			game.physics.p2.enable(deathHouse);
 			deathHouse.physicsBodyType = Phaser.Physics.P2JS;
 			deathHouse.body.clearShapes();
-			//deathHouse.body.loadPolygon('houseHitbox', 'fireHitbox');
 			deathHouse.body.loadPolygon('housePhysics', 'fireHitbox');
 			deathHouse.body.setCollisionGroup(platform);
 			deathHouse.body.collides([touchPlatform]);
@@ -675,8 +627,6 @@ Play.prototype = {
 			deathHouse.animations.add('normal', [0,1,2,3,1], 10, true);
 			deathHouse.animations.play('normal');
 		}
-
-		
 
 		//create bridges
 		if(this.level > 0 && this.level <= 3){ //if between levels 1 and 3, create bridge 1
@@ -728,23 +678,12 @@ Play.prototype = {
 			arena.body.loadPolygon('mainStageCollide', 'rightCave');
 			arena.body.loadPolygon('mainStageCollide', 'waterfallLedge');
 			arena.body.loadPolygon('mainStageCollide', 'gardenLedge');
-			/*arena.body.loadPolygon('mainStageCollide', 'lowerCliff');
-			arena.body.loadPolygon('mainStageCollide', 'housePlatform');
-			arena.body.loadPolygon('mainStageCollide', 'caveLeft');
-			arena.body.loadPolygon('mainStageCollide', 'caveRight');
-			arena.body.loadPolygon('mainStageCollide', 'waterFall');
-			arena.body.loadPolygon('mainStageCollide', 'garden');*/
 			arena.body.setCollisionGroup(platform); //change to platform
 			arena.body.collides([touchPlatform]);
 			arena.body.immovable = true;
 			
-			//put waterfall platform switch creation HERE
-
-
-			//game.physics.p2.updateBoundsCollisionGroup(); //toggle this on and off
 		}else if(this.level == 9){
 			//ruined arena
-
 			arena = new Arena(game, (game.width)/2, (game.height)/2+250, 'testRuins', this.level);
 			game.add.existing(arena);
 			arena.enableBody = true;
@@ -757,11 +696,9 @@ Play.prototype = {
 
 		}else if(this.level == 10){
 			//final arena
-
 			arena = new Arena(game, 900, (game.height)/2, 'testFinal', this.level);
 			game.add.existing(arena);
 			arena.enableBody = true;
-			//arena.anchor.set(0);
 			arena.physicsBodyType = Phaser.Physics.P2JS;
 			arena.body.loadPolygon('finalHitbox', 'stage10Ledge');
 			arena.body.loadPolygon('finalHitbox', 'stage10Cliff');
@@ -774,7 +711,6 @@ Play.prototype = {
 			//this is the ending
 		}
 
-		
 		platformSpeed = 120;
 
 		//set up flowers
@@ -806,8 +742,7 @@ Play.prototype = {
 		}
 
 
-		//LEVEL SPECIFIC TOOLS
-
+		//LEVEL SPECIFIC TOOLS (Clouds and Waterfall Platform Specifics)
 
 		if(this.level == 1){ //control window and waterfall y values
 			cloud1Exist = false;
@@ -1254,7 +1189,6 @@ Play.prototype = {
 
 		}
 
-		
 
 		//create player
 		player = new Player(game, 100, playerStartY, 'characterSpritesheet', 'Walk1');
@@ -1262,22 +1196,6 @@ Play.prototype = {
 		player.enableBody = true; 
 		player.body.setCollisionGroup(touchPlatform);
 		player.body.collides([platform/*, collectable*/], /*refreshJump, this*/);
-		/*player.body.onBeginContact.add(refreshJump, this);
-		player.body.onEndContact.add(deleteJump, this);*/
-
-		/*lowerHitbox = game.add.sprite(100, playerStartY, 'lowerHitbox');
-		lowerHitbox.alpha = 0;
-		lowerHitbox.enableBody = true; 
-		lowerHitbox.anchor.set(0.5); //anchor at center
-		game.physics.p2.enable(lowerHitbox, true); //enable physics
-		lowerHitbox.body.clearShapes();
-		lowerHitbox.body.setRectangle(32,15);
-		lowerHitbox.body.setZeroDamping();
-		lowerHitbox.body.fixedRotation = true;
-		//jumpHitbox.body.kinematic = true;
-		lowerHitbox.body.setCollisionGroup(touchCloud);
-		lowerHitbox.body.gravity = 0;
-		lowerHitbox.body.collides([cloud/*, collectable] /*refreshJump, this);*/
 
 		jumpHitbox = game.add.sprite(100, playerStartY, 'jumpHitbox');
 		jumpHitbox.alpha = 0;
@@ -1309,19 +1227,8 @@ Play.prototype = {
 		waterfallPlatform.body.setCollisionGroup(platform); 
 		waterfallPlatform.body.collides([touchPlatform]);
 
-		/*waterfallPlatformJump = new Phaser.Rectangle(110,8);
-		waterfallPlatformJump.enableBody = true;
-		waterfallPlatformJump.physicsBodyType = Phaser.Physics.P2JS;
-		game.physics.p2.enable(waterfallPlatformJump, this); //enable physics
-		waterfallPlatformJump.anchor.set(0.5, 1);
-		waterfallPlatformJump.body.clearShapes();
-		waterfallPlatformJump.body.setRectangle(110,8);*/
-
 		wheel = game.add.sprite(1095, waterfallY, 'wheel');
 		wheel.anchor.set(0.5);
-		/*wheel.enableBody = true;
-		game.physics.p2.enable(wheel); //enable physics
-		wheel.physicsBodyType = Phaser.Physics.P2JS;*/
 		
 		switchPool = game.add.sprite(705, 1082, 'poolSwitch', 0);
 		switchPool.animations.add('normal', [0,0,1,2,2,1], 8, true);
@@ -1397,7 +1304,6 @@ Play.prototype = {
 		function refreshJump(body, bodyB/*, shapeA, shapeB, equation*/){
 			//if player collides with platform, do this
 			//this is where landing animation should go, for only a few frames
-			//console.log('refreshing');
 			jumpOnce = true;
 			offPlatform = 0;
 			//onPlatform = true;
@@ -1426,21 +1332,15 @@ Play.prototype = {
 			cloud2Upward = cloud2CurrentUpward;
 		}
 
-		testTimer = 0;
 		jumpOnce = true;
 		jumpAnimOnce = 0;
 		direction = 0;
 
 		if(hasDied == true){
-			//console.log(deathX);
 			deathFallNoise.play();
 			var deathSpot = game.add.emitter(deathX, deathY, 80);
 			deathSpot.makeParticles('deathPetal');
 			deathSpot.setYSpeed(-70, 380);
-			//deathSpot.setAngle(1,2);
-			//deathSpot.setAngle(280, 330);
-			//deathSpot.setXSpeed(-90, -20);
-			//deathSpot.setYSpeed(-35 , 50);
 			deathSpot.start(true, 5000, 0, 60);
 		}
 
@@ -1449,23 +1349,17 @@ Play.prototype = {
 			console.log(this.level);
 			if(this.level <= 7){
 				windNoise.fadeOut(2600);
-				//BGNoise.add(windNoise);
 			}else if(this.level == 8){
 				windNoise.fadeOut(2600);
 				burnNoise.fadeOut(2600);
 			}else if(this.level == 9){
 				level9wind.fadeOut(2600);
 			}
-			//windNoise.fadeOut(2000);
 			hasDied = false;
-			//increment level
-			//this.level = this.level+1;
 			player.kill();
 			winSound.play();
 			var winSpot = game.add.emitter(endArrow.body.x, endArrow.body.y);
 			winSpot.makeParticles('endParticle');
-			//deathSpot.setAngle(1,2);
-			//deathSpot.setAngle(280, 330);
 			winSpot.setXSpeed(-350, -200);
 			if(this.level < 10){
 				winSpot.gravity = new Phaser.Point(-200, 30);
@@ -1474,10 +1368,8 @@ Play.prototype = {
 				winSpot.setAlpha(0.55, 0.7, 200);
 			}
 			
-			//winSpot.setYSpeed(0, 0);
 			winSpot.start(false, 5000, 10, 230);
 			winAnim = true;
-			//game.state.start('Cutscene', true, false, this.level); //move to Cutscene if spacebar is pressed
 		}
 
 		function killPlayer(body, bodyB, shapeA, shapeB, equation){
@@ -1673,10 +1565,6 @@ Play.prototype = {
 		jumpHitbox.body.y = player.body.y+50;
 		jumpHitbox.body.velocity.y = 0;
 
-		/*lowerHitbox.body.x = player.body.x;
-		lowerHitbox.body.y = player.body.y+50;
-		lowerHitbox.body.velocity.y = 0;*/
-
 		//animation control
 		if(this.cursors.up.isDown && followJump == true && jumpOnce == false){ //upward movement
 			//player.animations.play('jumping');
@@ -1793,43 +1681,8 @@ Play.prototype = {
 		}*/
 		upWait++;
 			
-	},
-	render: function(){
-		 //game.debug.cameraInfo(game.camera, 32, 32);
-
-		//game.debug.body(platform);
-		//game.debug.body(touchPlatform);
-		//game.debug.spriteInfo(player, 32, 32);
 	}
 }
-
-/*var deathAnimation = function(game) {};
-deathAnimation.prototype = {
-	preload: function(){
-		console.log('deathAnimation: preload');
-	},
-	create: function(){
-		console.log('deathAnimation: create');
-		deathFallNoise.play(); //play death sound
-
-	},
-	update: function(){
-		game.state.start('Play', true, false, this.level); //move to Play if player dies
-	}
-}
-
-var winAnimation = function(game) {};
-winAnimation.prototype = {
-	preload: function(){
-		console.log('winAnimation: preload');
-	},
-	create: function(){
-		console.log('winAnimation: craete');
-	},
-	update: function(){
-
-	}
-}*/
 
 var Credits = function(game) {};
 Credits.prototype = {
@@ -1966,38 +1819,11 @@ Credits.prototype = {
 }
 
 
-var GameOver = function(game) {};
-GameOver.prototype = {
-	preload: function(){
-		console.log('GameOver: preload');
-	},
-	create: function() {
-		console.log('GameOver: create');
-		var GameOverText;
-		//check to see if format is right if something goes wrong
-		GameOverText = game.add.text(16, 16, 
-			'Game Over \n' +
-			'Final Score: ' + this.score + "\n" +
-			'Press Space to try again!', 
-			{fontSize: '32px', fill: '#000' });
-		game.stage.backgroundColor = "#FACADE";
-	},
-	update: function(){
-		//GameOver logic
-		//move to play if space is pressed
-		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
-			//pass this.score
-			game.state.start('Play', true, false, this.score);
-		}
-	}
-}
 //add states to StateManager
 game.state.add('MainMenu', MainMenu);
 game.state.add('Cutscene', Cutscene);
 game.state.add('Play', Play);
 game.state.add('Credits', Credits);
-game.state.add('GameOver', GameOver);
-/*game.state.add('deathAnimation', deathAnimation);
-game.state.add('winAnimation', winAnimation);*/
+
 //start at main menu
 game.state.start('MainMenu');
